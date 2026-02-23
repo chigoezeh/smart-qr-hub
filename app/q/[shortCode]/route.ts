@@ -95,8 +95,10 @@ export async function GET(
   try {
     const [qrRecord] = await db
       .select({ 
-        id: qrCodes.id, 
-        url: qrCodes.destinationUrl,
+        id: qrCodes.id,
+        contentType: qrCodes.contentType,
+        contentData: qrCodes.contentData,
+        url: qrCodes.destinationUrl, // Legacy
         iosUrl: qrCodes.iosUrl,
         androidUrl: qrCodes.androidUrl,
         schedules: qrCodes.schedules,
@@ -109,6 +111,16 @@ export async function GET(
 
     if (!qrRecord) {
       return new NextResponse("QR Code not found", { status: 404 });
+    }
+
+    // For non-URL types, this endpoint shouldn't be called
+    // (QR codes encode content directly)
+    // But if it is, redirect to an info page or return 400
+    if (qrRecord.contentType && qrRecord.contentType !== "url") {
+      return new NextResponse(
+        "This QR code contains static content (vCard, WiFi, etc.) and does not use redirects.",
+        { status: 400 }
+      );
     }
 
     // Gather analytics data
@@ -138,15 +150,26 @@ export async function GET(
       utmCampaign: utmParams.utmCampaign,
     }).catch(console.error);
 
+    // Get base URL from contentData or legacy destinationUrl
+    let targetUrl = qrRecord.url; // Legacy field
+    if (qrRecord.contentData && typeof qrRecord.contentData === "object") {
+      const data = qrRecord.contentData as any;
+      if (data.url) {
+        targetUrl = data.url;
+      }
+    }
+
+    if (!targetUrl) {
+      return new NextResponse("No destination URL configured", { status: 400 });
+    }
+
     // Smart Routing Priority: Time > Language > OS > Default
-    let targetUrl = qrRecord.url;
     
     // 1. Time-based routing (highest priority)
     if (qrRecord.schedules) {
       const scheduleUrl = matchesSchedule(qrRecord.schedules as any[]);
       if (scheduleUrl) {
-        targetUrl = scheduleUrl;
-        return NextResponse.redirect(targetUrl, 302);
+        return NextResponse.redirect(scheduleUrl, 302);
       }
     }
     
@@ -156,11 +179,9 @@ export async function GET(
       const langRoutes = qrRecord.languageRoutes as Record<string, string>;
       
       if (preferredLang && langRoutes[preferredLang]) {
-        targetUrl = langRoutes[preferredLang];
-        return NextResponse.redirect(targetUrl, 302);
+        return NextResponse.redirect(langRoutes[preferredLang], 302);
       } else if (langRoutes.default) {
-        targetUrl = langRoutes.default;
-        return NextResponse.redirect(targetUrl, 302);
+        return NextResponse.redirect(langRoutes.default, 302);
       }
     }
     

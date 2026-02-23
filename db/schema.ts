@@ -40,17 +40,21 @@ export const qrCodes = pgTable("qr_codes", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
   shortCode: text("short_code").notNull().unique(), 
-  destinationUrl: text("destination_url").notNull(), 
+  destinationUrl: text("destination_url"), // Nullable for backward compatibility
   title: text("title"), 
   isDynamic: boolean("is_dynamic").default(true).notNull(), 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   
+  // QR Content Type System
+  contentType: text("content_type").notNull().default("url"), // url, text, vcard, email, sms, phone, wifi, event, location, whatsapp, social, crypto
+  contentData: jsonb("content_data"), // Flexible storage for type-specific data
+  
   // OS-specific routing
   iosUrl: text("ios_url"),
   androidUrl: text("android_url"),
   
-  // Smart Contextual Routing
+  // Smart Contextual Routing (only for URL types)
   schedules: jsonb("schedules"), // Array of {startTime, endTime, url, timezone}
   languageRoutes: jsonb("language_routes"), // Object like {en: "url", fr: "url"}
   

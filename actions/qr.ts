@@ -6,21 +6,44 @@ import crypto from "crypto";
 import QRCode from "qrcode";
 import { revalidatePath } from "next/cache";
 import { getCurrentWorkspace } from "@/lib/workspace";
+import { QRContentType } from "@/types/qr-content";
+import { encodeQRContent } from "@/lib/qr-encoder";
 
 export async function createSmartLink(formData: FormData) {
   // Get current user's workspace
   const { workspace } = await getCurrentWorkspace();
 
-  const destinationUrl = formData.get("destinationUrl") as string;
   const title = formData.get("title") as string;
+  const contentType = (formData.get("contentType") as QRContentType) || "url";
+  const contentDataJson = formData.get("contentData") as string;
+  
+  // Legacy support for old URL-only QR codes
+  const destinationUrl = formData.get("destinationUrl") as string;
+  
+  // Platform-specific routing (only for URL types)
   const iosUrl = formData.get("iosUrl") as string;
   const androidUrl = formData.get("androidUrl") as string;
   const schedulesJson = formData.get("schedules") as string;
   const languageRoutesJson = formData.get("languageRoutes") as string;
 
-  if (!destinationUrl) throw new Error("Destination URL is required");
+  // Parse content data
+  let contentData: any = {};
+  try {
+    if (contentDataJson && contentDataJson.trim()) {
+      contentData = JSON.parse(contentDataJson);
+    } else if (destinationUrl) {
+      // Legacy: if no contentData but destinationUrl provided, use it
+      contentData = { url: destinationUrl };
+    }
+  } catch (e) {
+    console.error("Invalid content data JSON:", e);
+    throw new Error("Invalid content data format");
+  }
 
-  // Parse JSON fields if provided
+  // Encode the content into QR-scannable format
+  const qrContent = encodeQRContent(contentType, contentData);
+
+  // Parse JSON fields if provided (smart routing for URL types)
   let schedules = null;
   let languageRoutes = null;
 
@@ -45,19 +68,24 @@ export async function createSmartLink(formData: FormData) {
   await db.insert(qrCodes).values({
     workspaceId: workspace.id,
     shortCode,
-    destinationUrl,
-    title: title || "Untitled Link",
-    iosUrl: iosUrl || null,
-    androidUrl: androidUrl || null,
-    schedules: schedules as any,
-    languageRoutes: languageRoutes as any,
+    title: title || "Untitled QR Code",
+    contentType,
+    contentData: contentData as any,
+    // For URL types, also store in destinationUrl for backward compatibility
+    destinationUrl: contentType === "url" && contentData.url ? contentData.url : null,
+    iosUrl: contentType === "url" && iosUrl ? iosUrl : null,
+    androidUrl: contentType === "url" && androidUrl ? androidUrl : null,
+    schedules: contentType === "url" && schedules ? (schedules as any) : null,
+    languageRoutes: contentType === "url" && languageRoutes ? (languageRoutes as any) : null,
   });
 
-  // Use environment variable for base URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const routingUrl = `${baseUrl}/q/${shortCode}`;
+  // For URL types with smart routing, use our redirect URL
+  // For static types (vcard, wifi, etc.), encode content directly
+  const qrEncodedContent = contentType === "url" && (schedules || languageRoutes || iosUrl || androidUrl)
+    ? `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/q/${shortCode}`
+    : qrContent;
 
-  const qrImageBase64 = await QRCode.toDataURL(routingUrl, {
+  const qrImageBase64 = await QRCode.toDataURL(qrEncodedContent, {
     width: 1024,
     margin: 1,
     color: { dark: "#000000", light: "#ffffff" },
@@ -65,5 +93,11 @@ export async function createSmartLink(formData: FormData) {
 
   revalidatePath("/dashboard");
 
-  return { success: true, shortCode, routingUrl, qrImageBase64 };
+  return { 
+    success: true, 
+    shortCode, 
+    routingUrl: qrEncodedContent, 
+    qrImageBase64,
+    contentType 
+  };
 }

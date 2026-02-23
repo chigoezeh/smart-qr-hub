@@ -138,7 +138,7 @@ export default async function DashboardPage() {
                       id={row.id}
                       title={row.title || "Untitled"}
                       shortCode={row.shortCode}
-                      destinationUrl={row.destinationUrl}
+                      destinationUrl={row.destinationUrl || ""}
                       status={row.status || "active"}
                       scanCount={row.scanCount}
                     />

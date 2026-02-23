@@ -7,7 +7,11 @@ import { Sparkles, Download, Loader2, Smartphone, Clock, Globe2, ArrowLeft, QrCo
 import { toast } from "sonner";
 import { ScheduleBuilder } from "./ScheduleBuilder";
 import { LanguageRouteBuilder } from "./LanguageRouteBuilder";
+import QRTypesSelector from "./QRTypesSelector";
+import QRContentForms from "./QRContentForms";
 import Link from "next/link";
+import { QRContentType, QR_TYPE_METADATA } from "@/types/qr-content";
+import { encodeQRContent, validateQRContent } from "@/lib/qr-encoder";
 
 interface Schedule {
   id: string;
@@ -34,32 +38,30 @@ export default function AdvancedQRForm() {
   const [shortCode, setShortCode] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   
+  // Content type system
+  const [contentType, setContentType] = useState<QRContentType>("url");
+  const [contentData, setContentData] = useState<any>({});
+  
   // Form values for real-time preview
   const [title, setTitle] = useState("");
-  const [destinationUrl, setDestinationUrl] = useState("");
-  const [isUrlValid, setIsUrlValid] = useState<boolean | null>(null);
   
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [languageRoutes, setLanguageRoutes] = useState<LanguageRoute[]>([]);
 
   // Debounced auto-generation
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Check if content is valid for QR generation
+  const isContentValid = () => {
+    const validation = validateQRContent(contentType, contentData);
+    return validation.valid;
+  };
+
+  const supportsSmartRouting = QR_TYPE_METADATA[contentType].supportsSmartRouting;
 
   useEffect(() => {
-    // Validate URL
-    if (destinationUrl) {
-      try {
-        new URL(destinationUrl);
-        setIsUrlValid(true);
-      } catch {
-        setIsUrlValid(false);
-      }
-    } else {
-      setIsUrlValid(null);
-    }
-
-    // Auto-generate QR when URL is valid
-    if (destinationUrl && isUrlValid) {
+    // Auto-generate QR when content is valid
+    if (isContentValid()) {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
@@ -74,34 +76,36 @@ export default function AdvancedQRForm() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [destinationUrl, isUrlValid, schedules, languageRoutes]);
+  }, [contentType, contentData, schedules, languageRoutes]);
 
   const autoGenerateQR = async () => {
-    if (!destinationUrl || !isUrlValid) return;
+    if (!isContentValid()) return;
     
     setIsGenerating(true);
     const formData = new FormData();
-    formData.set("title", title || "Untitled QR Code");
-    formData.set("destinationUrl", destinationUrl);
+    formData.set("title", title || `${QR_TYPE_METADATA[contentType].label} QR Code`);
+    formData.set("contentType", contentType);
+    formData.set("contentData", JSON.stringify(contentData));
     
-    // Add schedules if any
-    if (schedules.length > 0) {
-      const schedulesJson = JSON.stringify(
-        schedules.filter((s) => s.url).map(({ id, ...rest }) => rest)
-      );
-      formData.set("schedules", schedulesJson);
-    }
-    
-    // Add language routes if any
-    if (languageRoutes.length > 0) {
-      const routesObj = languageRoutes
-        .filter((r) => r.url)
-        .reduce((acc, route) => {
-          acc[route.language] = route.url;
-          return acc;
-        }, {} as Record<string, string>);
+    // Add smart routing only for URL types
+    if (supportsSmartRouting) {
+      if (schedules.length > 0) {
+        const schedulesJson = JSON.stringify(
+          schedules.filter((s) => s.url).map(({ id, ...rest }) => rest)
+        );
+        formData.set("schedules", schedulesJson);
+      }
       
-      formData.set("languageRoutes", JSON.stringify(routesObj));
+      if (languageRoutes.length > 0) {
+        const routesObj = languageRoutes
+          .filter((r) => r.url)
+          .reduce((acc, route) => {
+            acc[route.language] = route.url;
+            return acc;
+          }, {} as Record<string, string>);
+        
+        formData.set("languageRoutes", JSON.stringify(routesObj));
+      }
     }
 
     try {
@@ -127,23 +131,27 @@ export default function AdvancedQRForm() {
     }
     
     const formData = new FormData(e.currentTarget);
+    formData.set("contentType", contentType);
+    formData.set("contentData", JSON.stringify(contentData));
     
-    if (schedules.length > 0) {
-      const schedulesJson = JSON.stringify(
-        schedules.filter((s) => s.url).map(({ id, ...rest }) => rest)
-      );
-      formData.set("schedules", schedulesJson);
-    }
-    
-    if (languageRoutes.length > 0) {
-      const routesObj = languageRoutes
-        .filter((r) => r.url)
-        .reduce((acc, route) => {
-          acc[route.language] = route.url;
-          return acc;
-        }, {} as Record<string, string>);
+    if (supportsSmartRouting) {
+      if (schedules.length > 0) {
+        const schedulesJson = JSON.stringify(
+          schedules.filter((s) => s.url).map(({ id, ...rest }) => rest)
+        );
+        formData.set("schedules", schedulesJson);
+      }
       
-      formData.set("languageRoutes", JSON.stringify(routesObj));
+      if (languageRoutes.length > 0) {
+        const routesObj = languageRoutes
+          .filter((r) => r.url)
+          .reduce((acc, route) => {
+            acc[route.language] = route.url;
+            return acc;
+          }, {} as Record<string, string>);
+        
+        formData.set("languageRoutes", JSON.stringify(routesObj));
+      }
     }
 
     startTransition(async () => {
@@ -169,13 +177,19 @@ export default function AdvancedQRForm() {
     setQrImage(null);
     setShortCode(null);
     setTitle("");
-    setDestinationUrl("");
+    setContentData({});
     setSchedules([]);
     setLanguageRoutes([]);
     setShowAdvanced(false);
     setShowSchedules(false);
     setShowLanguages(false);
-    setIsUrlValid(null);
+  };
+
+  const handleTypeChange = (newType: QRContentType) => {
+    setContentType(newType);
+    setContentData({}); // Reset content data when type changes
+    setQrImage(null); // Reset QR image
+    setShortCode(null);
   };
 
   const activeRulesCount = schedules.length + languageRoutes.length;
@@ -229,18 +243,25 @@ export default function AdvancedQRForm() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* LEFT: Form Inputs (2/3 width) */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Basic Information */}
+              {/* QR Type Selector */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <div className="p-6">
+                  <QRTypesSelector selectedType={contentType} onTypeChange={handleTypeChange} />
+                </div>
+              </div>
+
+              {/* Content-Specific Form */}
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
                 <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 px-6 py-5 border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-purple-600" />
-                      Basic Information
+                      {QR_TYPE_METADATA[contentType].label} Details
                     </h2>
-                    {isUrlValid && (
+                    {isContentValid() && (
                       <div className="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
                         <Check className="w-3.5 h-3.5" />
-                        Valid URL
+                        Valid
                       </div>
                     )}
                   </div>
@@ -256,7 +277,7 @@ export default function AdvancedQRForm() {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       className="w-full rounded-xl border-2 border-gray-200 px-4 py-3.5 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-medium placeholder:text-gray-400"
-                      placeholder="e.g., Product Launch Campaign"
+                      placeholder={`e.g., My ${QR_TYPE_METADATA[contentType].label}`}
                     />
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-xs text-gray-500">
@@ -268,43 +289,18 @@ export default function AdvancedQRForm() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Destination URL <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="url"
-                        name="destinationUrl"
-                        value={destinationUrl}
-                        onChange={(e) => setDestinationUrl(e.target.value)}
-                        required
-                        className={`w-full rounded-xl border-2 px-4 py-3.5 pr-12 focus:ring-4 transition-all text-gray-900 font-medium placeholder:text-gray-400 ${
-                          isUrlValid === true
-                            ? "border-green-300 focus:border-green-500 focus:ring-green-500/20 bg-green-50/30"
-                            : isUrlValid === false
-                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/20 bg-red-50/30"
-                            : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                        }`}
-                        placeholder="https://example.com"
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        {isUrlValid === true && (
-                          <Check className="w-5 h-5 text-green-600" />
-                        )}
-                        {isUrlValid === false && (
-                          <AlertCircle className="w-5 h-5 text-red-600" />
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
-                      <Activity className="w-3.5 h-3.5" />
-                      Default URL when no smart routing rules apply
-                    </p>
-                  </div>
+                  {/* Dynamic content forms based on type */}
+                  <QRContentForms
+                    contentType={contentType}
+                    contentData={contentData}
+                    onChange={setContentData}
+                  />
                 </div>
               </div>
 
+              {/* Smart Routing Sections - Only for URL types */}
+              {supportsSmartRouting && (
+                <>
               {/* Platform-Specific URLs */}
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
                 <button
@@ -440,6 +436,8 @@ export default function AdvancedQRForm() {
                   </div>
                 )}
               </div>
+                </>
+              )}
             </div>
 
             {/* RIGHT: Live Preview Sidebar (1/3 width) */}
@@ -535,7 +533,7 @@ export default function AdvancedQRForm() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Status</span>
                         <span className="text-lg font-bold">
-                          {isUrlValid ? "✓ Ready" : "⚠ Pending"}
+                          {isContentValid() ? "✓ Ready" : "⚠ Pending"}
                         </span>
                       </div>
                     </div>
