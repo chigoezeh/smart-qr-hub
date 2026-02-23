@@ -3,6 +3,7 @@
 import { db } from "../db";
 import { qrCodes } from "../db/schema";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import { revalidatePath } from "next/cache";
 import { getCurrentWorkspace } from "@/lib/workspace";
@@ -25,6 +26,13 @@ export async function createSmartLink(formData: FormData) {
   const androidUrl = formData.get("androidUrl") as string;
   const schedulesJson = formData.get("schedules") as string;
   const languageRoutesJson = formData.get("languageRoutes") as string;
+  
+  // Security settings
+  const isPasswordProtected = formData.get("isPasswordProtected") === "true";
+  const passwordRaw = formData.get("password") as string;
+  const expiresAtStr = formData.get("expiresAt") as string;
+  const maxScansStr = formData.get("maxScans") as string;
+  const geofenceJson = formData.get("geofence") as string;
 
   // Parse content data
   let contentData: any = {};
@@ -62,6 +70,31 @@ export async function createSmartLink(formData: FormData) {
   } catch (e) {
     console.error("Invalid language routes JSON:", e);
   }
+  
+  // Parse security settings
+  let passwordHash = null;
+  if (isPasswordProtected && passwordRaw) {
+    passwordHash = await bcrypt.hash(passwordRaw, 10);
+  }
+  
+  let expiresAt = null;
+  if (expiresAtStr) {
+    expiresAt = new Date(expiresAtStr);
+  }
+  
+  let maxScans = null;
+  if (maxScansStr) {
+    maxScans = parseInt(maxScansStr, 10);
+  }
+  
+  let geofence = null;
+  try {
+    if (geofenceJson && geofenceJson.trim()) {
+      geofence = JSON.parse(geofenceJson);
+    }
+  } catch (e) {
+    console.error("Invalid geofence JSON:", e);
+  }
 
   const shortCode = crypto.randomBytes(3).toString("hex");
 
@@ -77,6 +110,12 @@ export async function createSmartLink(formData: FormData) {
     androidUrl: contentType === "url" && androidUrl ? androidUrl : null,
     schedules: contentType === "url" && schedules ? (schedules as any) : null,
     languageRoutes: contentType === "url" && languageRoutes ? (languageRoutes as any) : null,
+    // Security settings
+    isPasswordProtected,
+    password: passwordHash,
+    expiresAt,
+    maxScans,
+    geofence: geofence as any,
   });
 
   // For URL types with smart routing, use our redirect URL

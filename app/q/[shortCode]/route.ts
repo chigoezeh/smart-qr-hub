@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "../../../db";
 import { qrCodes, scans } from "../../../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 // Helper: Get client IP address
 function getClientIp(request: Request): string {
@@ -63,6 +63,19 @@ function getPreferredLanguage(request: Request): string | null {
   return primaryLang;
 }
 
+// Helper: Calculate distance between two points (Haversine formula)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 // Helper: Check if current time matches schedule
 function matchesSchedule(schedules: any[]): string | null {
   if (!schedules || schedules.length === 0) return null;
@@ -104,6 +117,13 @@ export async function GET(
         schedules: qrCodes.schedules,
         languageRoutes: qrCodes.languageRoutes,
         workspaceId: qrCodes.workspaceId,
+        // Security fields
+        status: qrCodes.status,
+        isPasswordProtected: qrCodes.isPasswordProtected,
+        expiresAt: qrCodes.expiresAt,
+        maxScans: qrCodes.maxScans,
+        currentScans: qrCodes.currentScans,
+        geofence: qrCodes.geofence,
       })
       .from(qrCodes)
       .where(eq(qrCodes.shortCode, shortCode))
@@ -111,6 +131,69 @@ export async function GET(
 
     if (!qrRecord) {
       return new NextResponse("QR Code not found", { status: 404 });
+    }
+
+    // SECURITY CHECKS (Phase 3)
+    
+    // 1. Status Check - QR must be active
+    if (qrRecord.status !== "active") {
+      return new NextResponse("This QR code has been paused or archived", { status: 403 });
+    }
+    
+    // 2. Expiration Check
+    if (qrRecord.expiresAt && new Date() > new Date(qrRecord.expiresAt)) {
+      return new NextResponse("This QR code has expired", { status: 410 });
+    }
+    
+    // Gather analytics data early for geofencing
+    const userAgent = request.headers.get("user-agent") || "Unknown";
+    const os = /android/i.test(userAgent) ? "Android" : /iphone|ipad/i.test(userAgent) ? "iOS" : "Other";
+    const deviceType = /mobile/i.test(userAgent) ? "Mobile" : "Desktop";
+    const referrer = request.headers.get("referer") || null;
+    const clientIp = getClientIp(request);
+    const utmParams = getUtmParams(request.url);
+    
+    // 3. Geofencing Check (requires IP geolocation)
+    if (qrRecord.geofence) {
+      const geoData = await getGeolocation(clientIp);
+      if (geoData && geoData.latitude && geoData.longitude) {
+        const geofenceConfig = qrRecord.geofence as any;
+        const distance = calculateDistance(
+          geoData.latitude,
+          geoData.longitude,
+          geofenceConfig.latitude,
+          geofenceConfig.longitude
+        );
+        
+        // If user is outside the geofence radius
+        if (distance > geofenceConfig.radiusKm) {
+          return new NextResponse(
+            `This QR code is only accessible within ${geofenceConfig.radiusKm}km of the specified location. You are ${distance.toFixed(1)}km away.`,
+            { status: 403 }
+          );
+        }
+      }
+    }
+    
+    // 4. Password Protection Check
+    if (qrRecord.isPasswordProtected) {
+      // Check for verification token in query params
+      const url = new URL(request.url);
+      const token = url.searchParams.get("token");
+      
+      // In production, validate token against database/cache
+      // For now, we'll accept any token from the verification page
+      if (!token) {
+        // Redirect to password verification page
+        const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify/${shortCode}`;
+        return NextResponse.redirect(verifyUrl, 302);
+      }
+      // Token exists, proceed with access
+    }
+    
+    // 5. Scan Limit Check
+    if (qrRecord.maxScans && qrRecord.currentScans !== null && qrRecord.currentScans >= qrRecord.maxScans) {
+      return new NextResponse("This QR code has reached its maximum scan limit", { status: 429 });
     }
 
     // For non-URL types, this endpoint shouldn't be called
@@ -122,20 +205,12 @@ export async function GET(
         { status: 400 }
       );
     }
-
-    // Gather analytics data
-    const userAgent = request.headers.get("user-agent") || "Unknown";
-    const os = /android/i.test(userAgent) ? "Android" : /iphone|ipad/i.test(userAgent) ? "iOS" : "Other";
-    const deviceType = /mobile/i.test(userAgent) ? "Mobile" : "Desktop";
-    const referrer = request.headers.get("referer") || null;
-    const clientIp = getClientIp(request);
-    const utmParams = getUtmParams(request.url);
     
-    // Fetch geolocation (non-blocking)
+    // Fetch geolocation for analytics
     const geoData = await getGeolocation(clientIp);
     
     // Record scan with all analytics data
-    db.insert(scans).values({
+    await db.insert(scans).values({
       qrCodeId: qrRecord.id,
       os: os,
       deviceType: deviceType,
@@ -149,6 +224,13 @@ export async function GET(
       utmMedium: utmParams.utmMedium,
       utmCampaign: utmParams.utmCampaign,
     }).catch(console.error);
+    
+    // Increment scan counter
+    await db
+      .update(qrCodes)
+      .set({ currentScans: sql`${qrCodes.currentScans} + 1` })
+      .where(eq(qrCodes.id, qrRecord.id))
+      .catch(console.error);
 
     // Get base URL from contentData or legacy destinationUrl
     let targetUrl = qrRecord.url; // Legacy field

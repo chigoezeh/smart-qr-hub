@@ -9,6 +9,7 @@ import { ScheduleBuilder } from "./ScheduleBuilder";
 import { LanguageRouteBuilder } from "./LanguageRouteBuilder";
 import QRTypesSelector from "./QRTypesSelector";
 import QRContentForms from "./QRContentForms";
+import SecuritySettings from "./SecuritySettings";
 import Link from "next/link";
 import { QRContentType, QR_TYPE_METADATA } from "@/types/qr-content";
 import { encodeQRContent, validateQRContent } from "@/lib/qr-encoder";
@@ -47,6 +48,18 @@ export default function AdvancedQRForm() {
   
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [languageRoutes, setLanguageRoutes] = useState<LanguageRoute[]>([]);
+  
+  // Security settings
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+  const [password, setPassword] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
+  const [maxScans, setMaxScans] = useState("");
+  const [geofence, setGeofence] = useState({
+    enabled: false,
+    latitude: "",
+    longitude: "",
+    radiusKm: "",
+  });
 
   // Debounced auto-generation
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -107,6 +120,25 @@ export default function AdvancedQRForm() {
         formData.set("languageRoutes", JSON.stringify(routesObj));
       }
     }
+    
+    // Add security settings
+    if (isPasswordProtected && password) {
+      formData.set("isPasswordProtected", "true");
+      formData.set("password", password);
+    }
+    if (expiresAt) {
+      formData.set("expiresAt", new Date(expiresAt).toISOString());
+    }
+    if (maxScans) {
+      formData.set("maxScans", maxScans);
+    }
+    if (geofence.enabled && geofence.latitude && geofence.longitude && geofence.radiusKm) {
+      formData.set("geofence", JSON.stringify({
+        latitude: parseFloat(geofence.latitude),
+        longitude: parseFloat(geofence.longitude),
+        radiusKm: parseFloat(geofence.radiusKm),
+      }));
+    }
 
     try {
       const result = await createSmartLink(formData);
@@ -152,6 +184,25 @@ export default function AdvancedQRForm() {
         
         formData.set("languageRoutes", JSON.stringify(routesObj));
       }
+    }
+    
+    // Add security settings
+    if (isPasswordProtected && password) {
+      formData.set("isPasswordProtected", "true");
+      formData.set("password", password);
+    }
+    if (expiresAt) {
+      formData.set("expiresAt", new Date(expiresAt).toISOString());
+    }
+    if (maxScans) {
+      formData.set("maxScans", maxScans);
+    }
+    if (geofence.enabled && geofence.latitude && geofence.longitude && geofence.radiusKm) {
+      formData.set("geofence", JSON.stringify({
+        latitude: parseFloat(geofence.latitude),
+        longitude: parseFloat(geofence.longitude),
+        radiusKm: parseFloat(geofence.radiusKm),
+      }));
     }
 
     startTransition(async () => {
@@ -438,6 +489,20 @@ export default function AdvancedQRForm() {
               </div>
                 </>
               )}
+              
+              {/* Security & Access Control */}
+              <SecuritySettings
+                isPasswordProtected={isPasswordProtected}
+                setIsPasswordProtected={setIsPasswordProtected}
+                password={password}
+                setPassword={setPassword}
+                expiresAt={expiresAt}
+                setExpiresAt={setExpiresAt}
+                maxScans={maxScans}
+                setMaxScans={setMaxScans}
+                geofence={geofence}
+                setGeofence={setGeofence}
+              />
             </div>
 
             {/* RIGHT: Live Preview Sidebar (1/3 width) */}
