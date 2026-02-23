@@ -4,7 +4,7 @@ import { eq, desc } from "drizzle-orm";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, ExternalLink, Globe, User, Link2, Eye, MousePointerClick } from "lucide-react";
+import { Plus, ExternalLink, Globe, User, Link2, Eye, MousePointerClick, BarChart3 } from "lucide-react";
 
 export default async function LandingPagesPage() {
   const { workspace } = await getCurrentWorkspace();
@@ -193,19 +193,26 @@ export default async function LandingPagesPage() {
                   </div>
 
                   {/* Card Actions */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 grid grid-cols-3 gap-2">
                     <a
                       href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/l/${page.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
                     >
                       <Eye className="w-4 h-4" />
                       Preview
                     </a>
                     <Link
+                      href={`/dashboard/pages/${page.id}/analytics`}
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                      Analytics
+                    </Link>
+                    <Link
                       href={`/dashboard/pages/${page.id}/edit`}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium shadow-md transition-all"
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium shadow-md transition-all"
                     >
                       Edit
                     </Link>

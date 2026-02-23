@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { landingPages, landingPageLinks, landingPageClicks } from "@/db/schema";
+import { landingPages, landingPageLinks } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { Link2, Mail, Phone, MapPin, Building2, Download, Globe } from "lucide-react";
+import { Link2, Mail, Phone, MapPin, Building2, Download } from "lucide-react";
+import TrackedLink from "@/components/TrackedLink";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -178,21 +179,11 @@ export default async function PublicLandingPage({ params }: PageProps) {
         {links.length > 0 && (
           <div className="space-y-4">
             {links.map((link) => (
-              <a
+              <TrackedLink
                 key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`block w-full px-6 py-4 ${currentTheme.button} rounded-2xl font-semibold shadow-lg transition-all group`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {link.icon && <span className="text-2xl">{link.icon}</span>}
-                    <span>{link.title}</span>
-                  </div>
-                  <Globe className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </a>
+                link={link}
+                buttonClass={currentTheme.button}
+              />
             ))}
           </div>
         )}
