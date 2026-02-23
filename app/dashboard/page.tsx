@@ -25,6 +25,11 @@ export default async function DashboardPage() {
       createdAt: qrCodes.createdAt,
       status: qrCodes.status,
       scanCount: sql<number>`count(${scans.id})`.mapWith(Number),
+      isPasswordProtected: qrCodes.isPasswordProtected,
+      expiresAt: qrCodes.expiresAt,
+      maxScans: qrCodes.maxScans,
+      currentScans: qrCodes.currentScans,
+      geofence: sql<string | null>`${qrCodes.geofence}::text`,
     })
     .from(qrCodes)
     .leftJoin(scans, eq(qrCodes.id, scans.qrCodeId))
@@ -36,6 +41,9 @@ export default async function DashboardPage() {
   const totalQRCodes = analyticsData.length;
   const totalScans = analyticsData.reduce((sum, row) => sum + row.scanCount, 0);
   const activeCodes = analyticsData.filter((row) => row.status === "active").length;
+  const securedCodes = analyticsData.filter((row) => 
+    row.isPasswordProtected || row.expiresAt !== null || row.maxScans !== null || row.geofence !== null
+  ).length;
   
   // Calculate type distribution
   const typeDistribution = analyticsData.reduce((acc, row) => {
@@ -73,10 +81,11 @@ export default async function DashboardPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <StatCard title="Total QR Codes" value={totalQRCodes} icon="qr" color="blue" />
           <StatCard title="Total Scans" value={totalScans.toLocaleString()} icon="scans" color="green" />
           <StatCard title="Active Codes" value={activeCodes} icon="active" color="purple" />
+          <StatCard title="Secured QRs" value={securedCodes} icon="lock" color="red" />
           <StatCard 
             title="Content Types" 
             value={uniqueTypes} 

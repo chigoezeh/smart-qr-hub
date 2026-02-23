@@ -16,6 +16,11 @@ interface QRCodeData {
   createdAt: Date;
   status: string | null;
   scanCount: number;
+  isPasswordProtected: boolean;
+  expiresAt: Date | null;
+  maxScans: number | null;
+  currentScans: number;
+  geofence: string | null;
 }
 
 interface DashboardContentProps {
@@ -138,6 +143,11 @@ export default function DashboardContent({ data }: DashboardContentProps) {
                     contentType={row.contentType as QRContentType}
                     status={row.status || "active"}
                     scanCount={row.scanCount}
+                    isPasswordProtected={row.isPasswordProtected}
+                    expiresAt={row.expiresAt}
+                    maxScans={row.maxScans}
+                    currentScans={row.currentScans}
+                    geofence={row.geofence}
                   />
                 ))
               )}

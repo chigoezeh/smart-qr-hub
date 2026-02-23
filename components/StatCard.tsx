@@ -1,12 +1,12 @@
 "use client";
 
-import { QrCode, MousePointerClick, TrendingUp, CheckCircle2 } from "lucide-react";
+import { QrCode, MousePointerClick, TrendingUp, CheckCircle2, Shield } from "lucide-react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: "qr" | "scans" | "active" | "trending";
-  color: "blue" | "green" | "purple" | "orange" | "indigo";
+  icon: "qr" | "scans" | "active" | "trending" | "lock";
+  color: "blue" | "green" | "purple" | "orange" | "indigo" | "red";
   subtitle?: string;
 }
 
@@ -15,6 +15,7 @@ const iconMap = {
   scans: MousePointerClick,
   active: CheckCircle2,
   trending: TrendingUp,
+  lock: Shield,
 };
 
 const colorMap = {
@@ -47,6 +48,12 @@ const colorMap = {
     light: "bg-indigo-50",
     text: "text-indigo-600",
     gradient: "from-indigo-500 to-indigo-600",
+  },
+  red: {
+    bg: "bg-red-500",
+    light: "bg-red-50",
+    text: "text-red-600",
+    gradient: "from-red-500 to-red-600",
   },
 };
 

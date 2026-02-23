@@ -6,6 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { QRContentType } from "@/types/qr-content";
 import QRTypeBadge from "./QRTypeBadge";
+import SecurityBadges from "./SecurityBadges";
 
 interface QRTableRowProps {
   id: number;
@@ -15,6 +16,11 @@ interface QRTableRowProps {
   contentType: QRContentType;
   status: string;
   scanCount: number;
+  isPasswordProtected: boolean;
+  expiresAt: Date | null;
+  maxScans: number | null;
+  currentScans: number;
+  geofence: string | null;
 }
 
 export default function QRTableRow({
@@ -25,6 +31,11 @@ export default function QRTableRow({
   contentType,
   status,
   scanCount,
+  isPasswordProtected,
+  expiresAt,
+  maxScans,
+  currentScans,
+  geofence,
 }: QRTableRowProps) {
   const [copied, setCopied] = useState(false);
 
@@ -47,9 +58,18 @@ export default function QRTableRow({
             <span className="text-white text-xs sm:text-sm font-bold">QR</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-gray-900 text-sm sm:text-base truncate group-hover:text-blue-600 transition-colors">
-              {title}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="font-bold text-gray-900 text-sm sm:text-base truncate group-hover:text-blue-600 transition-colors">
+                {title}
+              </p>
+              <SecurityBadges
+                isPasswordProtected={isPasswordProtected}
+                hasExpiration={expiresAt !== null}
+                hasMaxScans={maxScans !== null}
+                hasGeofence={geofence !== null}
+                variant="compact"
+              />
+            </div>
             <p className="text-xs text-gray-500 font-mono mt-1 truncate">
               /q/{shortCode}
             </p>
