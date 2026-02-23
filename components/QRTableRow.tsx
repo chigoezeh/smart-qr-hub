@@ -4,12 +4,15 @@ import { Copy, ExternalLink, Eye, BarChart3, ExternalLinkIcon } from "lucide-rea
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { QRContentType } from "@/types/qr-content";
+import QRTypeBadge from "./QRTypeBadge";
 
 interface QRTableRowProps {
   id: number;
   title: string;
   shortCode: string;
   destinationUrl: string;
+  contentType: QRContentType;
   status: string;
   scanCount: number;
 }
@@ -19,6 +22,7 @@ export default function QRTableRow({
   title,
   shortCode,
   destinationUrl,
+  contentType,
   status,
   scanCount,
 }: QRTableRowProps) {
@@ -52,7 +56,10 @@ export default function QRTableRow({
           </div>
         </div>
       </td>
-      <td className="p-4 sm:p-5 hidden sm:table-cell">
+      <td className="p-4 sm:p-5">
+        <QRTypeBadge type={contentType} variant="compact" />
+      </td>
+      <td className="p-4 sm:p-5 hidden lg:table-cell">
         <div className="flex items-center gap-2">
           <a
             href={destinationUrl}

@@ -6,7 +6,8 @@ interface StatCardProps {
   title: string;
   value: string | number;
   icon: "qr" | "scans" | "active" | "trending";
-  color: "blue" | "green" | "purple" | "orange";
+  color: "blue" | "green" | "purple" | "orange" | "indigo";
+  subtitle?: string;
 }
 
 const iconMap = {
@@ -41,20 +42,29 @@ const colorMap = {
     text: "text-orange-600",
     gradient: "from-orange-500 to-orange-600",
   },
+  indigo: {
+    bg: "bg-indigo-500",
+    light: "bg-indigo-50",
+    text: "text-indigo-600",
+    gradient: "from-indigo-500 to-indigo-600",
+  },
 };
 
-export default function StatCard({ title, value, icon, color }: StatCardProps) {
+export default function StatCard({ title, value, icon, color, subtitle }: StatCardProps) {
   const Icon = iconMap[icon];
   const colors = colorMap[color];
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          {subtitle && (
+            <p className="text-xs text-gray-500 mt-1 capitalize">Top: {subtitle}</p>
+          )}
         </div>
-        <div className={`w-14 h-14 ${colors.light} rounded-xl flex items-center justify-center`}>
+        <div className={`w-14 h-14 ${colors.light} rounded-xl flex items-center justify-center flex-shrink-0`}>
           <Icon className={`w-7 h-7 ${colors.text}`} />
         </div>
       </div>

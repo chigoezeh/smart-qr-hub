@@ -4,9 +4,11 @@ import { desc, eq, sql } from "drizzle-orm";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { UserButton } from "@clerk/nextjs";
 import StatCard from "@/components/StatCard";
-import QRTableRow from "@/components/QRTableRow";
+import DashboardContent from "@/components/DashboardContent";
+import TypeDistribution from "@/components/TypeDistribution";
 import { QrCode, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { QR_TYPE_METADATA } from "@/types/qr-content";
 
 export default async function DashboardPage() {
   // Get current user's workspace
@@ -19,6 +21,7 @@ export default async function DashboardPage() {
       title: qrCodes.title,
       shortCode: qrCodes.shortCode,
       destinationUrl: qrCodes.destinationUrl,
+      contentType: qrCodes.contentType,
       createdAt: qrCodes.createdAt,
       status: qrCodes.status,
       scanCount: sql<number>`count(${scans.id})`.mapWith(Number),
@@ -33,6 +36,16 @@ export default async function DashboardPage() {
   const totalQRCodes = analyticsData.length;
   const totalScans = analyticsData.reduce((sum, row) => sum + row.scanCount, 0);
   const activeCodes = analyticsData.filter((row) => row.status === "active").length;
+  
+  // Calculate type distribution
+  const typeDistribution = analyticsData.reduce((acc, row) => {
+    const type = row.contentType || "url";
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const mostPopularType = Object.entries(typeDistribution).sort((a, b) => b[1] - a[1])[0];
+  const uniqueTypes = Object.keys(typeDistribution).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
@@ -60,11 +73,23 @@ export default async function DashboardPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <StatCard title="Total QR Codes" value={totalQRCodes} icon="qr" color="blue" />
           <StatCard title="Total Scans" value={totalScans.toLocaleString()} icon="scans" color="green" />
           <StatCard title="Active Codes" value={activeCodes} icon="active" color="purple" />
+          <StatCard 
+            title="Content Types" 
+            value={uniqueTypes} 
+            icon="qr" 
+            color="indigo"
+            subtitle={mostPopularType ? `${mostPopularType[0]} (${mostPopularType[1]})` : undefined}
+          />
         </div>
+
+        {/* Type Distribution Analytics */}
+        {analyticsData.length > 0 && (
+          <TypeDistribution data={analyticsData} />
+        )}
 
         {/* Create QR Button */}
         <div className="flex justify-end">
@@ -78,76 +103,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* QR Codes Table */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Table Header */}
-          <div className="px-4 sm:px-6 py-5 border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Active Links & Performance
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-600 mt-1.5">
-                  {totalQRCodes} total {totalQRCodes === 1 ? "link" : "links"} · Monitor scans and engagement in real-time
-                </p>
-              </div>
-              <div className="hidden sm:block">
-                <Sparkles className="w-8 h-8 text-purple-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
-              <thead>
-                <tr className="bg-gradient-to-r from-gray-50 to-blue-50 text-gray-700 text-xs font-bold uppercase tracking-wider border-b-2 border-gray-200">
-                  <th className="p-4 text-left">QR Code</th>
-                  <th className="p-4 text-left hidden sm:table-cell">Destination</th>
-                  <th className="p-4 text-left">Status</th>
-                  <th className="p-4 text-right">Performance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {analyticsData.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="p-12 sm:p-16 text-center">
-                      <div className="flex flex-col items-center gap-4 text-gray-500">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
-                          <QrCode className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-base sm:text-lg text-gray-900 mb-1">No QR codes yet</p>
-                          <p className="text-xs sm:text-sm text-gray-600">
-                            Create your first smart link to unlock powerful analytics
-                          </p>
-                        </div>
-                        <Link
-                          href="/dashboard/create"
-                          className="mt-2 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Create First QR Code
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  analyticsData.map((row) => (
-                    <QRTableRow
-                      key={row.id}
-                      id={row.id}
-                      title={row.title || "Untitled"}
-                      shortCode={row.shortCode}
-                      destinationUrl={row.destinationUrl || ""}
-                      status={row.status || "active"}
-                      scanCount={row.scanCount}
-                    />
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DashboardContent data={analyticsData} />
       </div>
     </div>
   );
