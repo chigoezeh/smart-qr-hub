@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createSmartLink } from "@/actions/qr";
 import { updateQRCode } from "@/actions/qr-update";
+import { generateQRPreview } from "@/actions/qr-preview";
 import { Sparkles, Download, Loader2, Smartphone, Clock, Globe2, ArrowLeft, QrCode as QrIcon, Check, AlertCircle, Zap, TrendingUp, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { ScheduleBuilder } from "./ScheduleBuilder";
@@ -137,7 +138,10 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
   const supportsSmartRouting = QR_TYPE_METADATA[contentType].supportsSmartRouting;
 
   useEffect(() => {
-    // Auto-generate QR when content is valid
+    // Skip auto-generation in edit mode - we already have the QR code
+    if (editMode) return;
+    
+    // Auto-generate QR preview when content is valid
     if (isContentValid()) {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -153,14 +157,13 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [contentType, contentData, schedules, languageRoutes]);
+  }, [contentType, contentData, schedules, languageRoutes, editMode]);
 
   const autoGenerateQR = async () => {
     if (!isContentValid()) return;
     
     setIsGenerating(true);
     const formData = new FormData();
-    formData.set("title", title || `${QR_TYPE_METADATA[contentType].label} QR Code`);
     formData.set("contentType", contentType);
     formData.set("contentData", JSON.stringify(contentData));
     
@@ -184,42 +187,16 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
         formData.set("languageRoutes", JSON.stringify(routesObj));
       }
     }
-    
-    // Add security settings
-    if (isPasswordProtected && password) {
-      formData.set("isPasswordProtected", "true");
-      formData.set("password", password);
-    }
-    if (expiresAt) {
-      formData.set("expiresAt", new Date(expiresAt).toISOString());
-    }
-    if (maxScans) {
-      formData.set("maxScans", maxScans);
-    }
-    if (geofence.enabled && geofence.latitude && geofence.longitude && geofence.radiusKm) {
-      formData.set("geofence", JSON.stringify({
-        latitude: parseFloat(geofence.latitude),
-        longitude: parseFloat(geofence.longitude),
-        radiusKm: parseFloat(geofence.radiusKm),
-      }));
-    }
-
-    // Add retargeting pixels
-    if (facebookPixelId) {
-      formData.set("facebookPixelId", facebookPixelId);
-    }
-    if (googleTagManagerId) {
-      formData.set("googleTagManagerId", googleTagManagerId);
-    }
 
     try {
-      const result = await createSmartLink(formData);
-      if (result.success) {
+      // Use preview action - does NOT save to database
+      const result = await generateQRPreview(formData);
+      if (result.success && result.qrImageBase64) {
         setQrImage(result.qrImageBase64);
-        setShortCode(result.shortCode);
+        // Don't set shortCode - it's only generated on actual save
       }
     } catch (error) {
-      console.error("Auto-generation failed:", error);
+      console.error("Preview generation failed:", error);
     } finally {
       setIsGenerating(false);
     }
@@ -227,12 +204,6 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (qrImage && shortCode) {
-      toast.success("QR Code ready!", {
-        description: `Short code: ${shortCode}`,
-      });
-      return;
-    }
     
     const formData = new FormData(e.currentTarget);
     formData.set("contentType", contentType);
@@ -684,6 +655,13 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
                             className="w-full h-full rounded-xl"
                           />
                         </div>
+                        
+                        {!shortCode && !editMode && (
+                          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4 border border-amber-200">
+                            <p className="text-xs font-bold text-amber-700 mb-1">Preview Only</p>
+                            <p className="text-xs text-amber-600">Submit the form to generate your short code and save the QR code</p>
+                          </div>
+                        )}
                         
                         {shortCode && (
                           <div className="space-y-3">

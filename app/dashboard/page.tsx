@@ -6,7 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import StatCard from "@/components/StatCard";
 import TypeDistribution from "@/components/TypeDistribution";
 import RecentActivity from "@/components/RecentActivity";
-import { BarChart3, Plus, LayoutGrid, Sparkles, ArrowRight, Settings } from "lucide-react";
+import { BarChart3, Plus, LayoutGrid, Sparkles, ArrowRight, Settings, Globe } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -96,7 +96,14 @@ export default async function DashboardPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all border border-gray-200"
               >
                 <LayoutGrid className="w-4 h-4" />
-                <span className="hidden sm:inline">My QR Codes</span>
+                <span className="hidden sm:inline">QR Codes</span>
+              </Link>
+              <Link
+                href="/dashboard/pages"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all border border-gray-200"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="hidden sm:inline">Pages</span>
               </Link>
               <Link
                 href="/dashboard/settings"
