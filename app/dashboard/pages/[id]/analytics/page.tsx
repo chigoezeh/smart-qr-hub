@@ -6,11 +6,12 @@ import { eq, and, sql, desc } from "drizzle-orm";
 import Link from "next/link";
 import { ArrowLeft, TrendingUp, MousePointerClick, Globe2, MapPin } from "lucide-react";
 
-export default async function LandingPageAnalytics({ params }: { params: { id: string } }) {
+export default async function LandingPageAnalytics({ params }: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
   if (!user) redirect("/sign-in");
 
-  const pageId = parseInt(params.id);
+  const { id } = await params;
+  const pageId = parseInt(id);
   if (isNaN(pageId)) notFound();
 
   // Get user's workspace
