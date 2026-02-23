@@ -3,9 +3,32 @@ import QRCode from "qrcode";
 import crypto from "crypto";
 import { db } from "../../../db"; 
 import { qrCodes } from "../../../db/schema";
+import { auth } from "@clerk/nextjs/server";
+import { db as database } from "@/db";
+import { workspaceMembers } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
+    // Check authentication
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get user's workspace
+    const membership = await database
+      .select({ workspaceId: workspaceMembers.workspaceId })
+      .from(workspaceMembers)
+      .where(eq(workspaceMembers.userId, userId))
+      .limit(1);
+
+    if (membership.length === 0) {
+      return NextResponse.json({ error: "No workspace found" }, { status: 403 });
+    }
+
+    const workspaceId = membership[0].workspaceId;
+
     const body = await request.json();
     const { destinationUrl, title } = body;
 
@@ -16,16 +39,17 @@ export async function POST(request: Request) {
     // 1. Generate a random 6-character short code (e.g., "a1b2c3")
     const shortCode = crypto.randomBytes(3).toString("hex");
 
-    // 2. Save the Smart Link to PostgreSQL
+    // 2. Save the Smart Link to PostgreSQL with workspace isolation
     await db.insert(qrCodes).values({
+      workspaceId,
       shortCode,
       destinationUrl,
       title: title || "Untitled Link",
     });
 
-    // 3. Create the routing URL (what the QR code will actually scan)
-    // For local testing, use your specific local IP address here.
-    const routingUrl = `https://192.168.1.189:3000/q/${shortCode}`;
+    // 3. Create the routing URL using environment variable
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const routingUrl = `${baseUrl}/q/${shortCode}`;
 
     // 4. Generate the QR Code image as a Base64 data string
     const qrImageBase64 = await QRCode.toDataURL(routingUrl, {
