@@ -1,12 +1,12 @@
 import { db } from "../../db";
 import { qrCodes, scans } from "../../db/schema";
 import { desc, eq, sql } from "drizzle-orm";
-import CreateQRForm from "../../components/CreateQRForm";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { UserButton } from "@clerk/nextjs";
 import StatCard from "@/components/StatCard";
 import QRTableRow from "@/components/QRTableRow";
-import { QrCode } from "lucide-react";
+import { QrCode, Plus, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   // Get current user's workspace
@@ -66,65 +66,86 @@ export default async function DashboardPage() {
           <StatCard title="Active Codes" value={activeCodes} icon="active" color="purple" />
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Left Column: Generator Form */}
-          <div className="lg:col-span-1 order-2 lg:order-1">
-            <CreateQRForm />
-          </div>
+        {/* Create QR Button */}
+        <div className="flex justify-end">
+          <Link
+            href="/dashboard/create"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:scale-105 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            Create New QR Code
+          </Link>
+        </div>
 
-          {/* Right Column: Analytics Table */}
-          <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              {/* Table Header */}
-              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800">Active Links & Performance</h2>
-                <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                  {totalQRCodes} total {totalQRCodes === 1 ? "link" : "links"}
+        {/* QR Codes Table */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Table Header */}
+          <div className="px-4 sm:px-6 py-5 border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Active Links & Performance
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1.5">
+                  {totalQRCodes} total {totalQRCodes === 1 ? "link" : "links"} · Monitor scans and engagement in real-time
                 </p>
               </div>
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px]">
-                  <thead>
-                    <tr className="bg-gray-50 text-gray-600 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
-                      <th className="p-3 sm:p-4 text-left">QR Code</th>
-                      <th className="p-3 sm:p-4 text-left hidden sm:table-cell">Destination</th>
-                      <th className="p-3 sm:p-4 text-left">Status</th>
-                      <th className="p-3 sm:p-4 text-right">Scans</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {analyticsData.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-8 sm:p-12 text-center">
-                          <div className="flex flex-col items-center gap-3 text-gray-500">
-                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                              <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
-                            </div>
-                            <p className="font-medium text-sm sm:text-base">No QR codes yet</p>
-                            <p className="text-xs sm:text-sm">Create your first smart link to get started!</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      analyticsData.map((row) => (
-                        <QRTableRow
-                          key={row.id}
-                          id={row.id}
-                          title={row.title || "Untitled"}
-                          shortCode={row.shortCode}
-                          destinationUrl={row.destinationUrl}
-                          status={row.status || "active"}
-                          scanCount={row.scanCount}
-                        />
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="hidden sm:block">
+                <Sparkles className="w-8 h-8 text-purple-400" />
               </div>
             </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px]">
+              <thead>
+                <tr className="bg-gradient-to-r from-gray-50 to-blue-50 text-gray-700 text-xs font-bold uppercase tracking-wider border-b-2 border-gray-200">
+                  <th className="p-4 text-left">QR Code</th>
+                  <th className="p-4 text-left hidden sm:table-cell">Destination</th>
+                  <th className="p-4 text-left">Status</th>
+                  <th className="p-4 text-right">Performance</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {analyticsData.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-12 sm:p-16 text-center">
+                      <div className="flex flex-col items-center gap-4 text-gray-500">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
+                          <QrCode className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-base sm:text-lg text-gray-900 mb-1">No QR codes yet</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            Create your first smart link to unlock powerful analytics
+                          </p>
+                        </div>
+                        <Link
+                          href="/dashboard/create"
+                          className="mt-2 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Create First QR Code
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  analyticsData.map((row) => (
+                    <QRTableRow
+                      key={row.id}
+                      id={row.id}
+                      title={row.title || "Untitled"}
+                      shortCode={row.shortCode}
+                      destinationUrl={row.destinationUrl}
+                      status={row.status || "active"}
+                      scanCount={row.scanCount}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
