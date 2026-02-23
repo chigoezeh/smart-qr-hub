@@ -3,9 +3,6 @@
 import { QRContentType } from "@/types/qr-content";
 import { Globe, FileText, User, Mail, MessageSquare, Phone, Wifi, Calendar, MapPin, MessageCircle, Share2, Coins, Info } from "lucide-react";
 
-// Shared input style
-const inputFieldClass = "w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium";
-
 interface QRContentFormsProps {
   contentType: QRContentType;
   contentData: any;
@@ -102,7 +99,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="text"
             value={data.firstName || ""}
             onChange={(e) => updateField("firstName", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="John"
             required
           />
@@ -112,7 +109,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="text"
             value={data.lastName || ""}
             onChange={(e) => updateField("lastName", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="Doe"
           />
         </FormField>
@@ -124,7 +121,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="text"
             value={data.organization || ""}
             onChange={(e) => updateField("organization", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="Acme Inc."
           />
         </FormField>
@@ -133,7 +130,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="text"
             value={data.title || ""}
             onChange={(e) => updateField("title", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="CEO"
           />
         </FormField>
@@ -145,7 +142,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="tel"
             value={data.phone || ""}
             onChange={(e) => updateField("phone", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="+1 234 567 8900"
           />
         </FormField>
@@ -154,7 +151,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="email"
             value={data.email || ""}
             onChange={(e) => updateField("email", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="john@example.com"
           />
         </FormField>
@@ -165,7 +162,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
           type="url"
           value={data.website || ""}
           onChange={(e) => updateField("website", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="https://example.com"
         />
       </FormField>
@@ -175,7 +172,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
           type="text"
           value={data.address?.street || ""}
           onChange={(e) => updateNestedField("address", "street", e.target.value)}
-          className="input-field mb-2"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium mb-2"
           placeholder="Street"
         />
         <div className="grid grid-cols-3 gap-2">
@@ -183,21 +180,21 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
             type="text"
             value={data.address?.city || ""}
             onChange={(e) => updateNestedField("address", "city", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="City"
           />
           <input
             type="text"
             value={data.address?.state || ""}
             onChange={(e) => updateNestedField("address", "state", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="State"
           />
           <input
             type="text"
             value={data.address?.zip || ""}
             onChange={(e) => updateNestedField("address", "zip", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="ZIP"
           />
         </div>
@@ -207,7 +204,7 @@ function VCardForm({ data, updateField, updateNestedField }: any) {
         <textarea
           value={data.note || ""}
           onChange={(e) => updateField("note", e.target.value)}
-          className="input-field min-h-[80px]"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium min-h-[80px]"
           placeholder="Additional notes..."
         />
       </FormField>
@@ -224,7 +221,7 @@ function EmailForm({ data, updateField }: any) {
           type="email"
           value={data.email || ""}
           onChange={(e) => updateField("email", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="contact@example.com"
           required
         />
@@ -234,7 +231,7 @@ function EmailForm({ data, updateField }: any) {
           type="text"
           value={data.subject || ""}
           onChange={(e) => updateField("subject", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="Email subject"
         />
       </FormField>
@@ -242,7 +239,7 @@ function EmailForm({ data, updateField }: any) {
         <textarea
           value={data.body || ""}
           onChange={(e) => updateField("body", e.target.value)}
-          className="input-field min-h-[100px]"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium min-h-[100px]"
           placeholder="Pre-filled email message..."
         />
       </FormField>
@@ -259,7 +256,7 @@ function SMSForm({ data, updateField }: any) {
           type="tel"
           value={data.phone || ""}
           onChange={(e) => updateField("phone", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="+1 234 567 8900"
           required
         />
@@ -268,7 +265,7 @@ function SMSForm({ data, updateField }: any) {
         <textarea
           value={data.message || ""}
           onChange={(e) => updateField("message", e.target.value)}
-          className="input-field min-h-[100px]"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium min-h-[100px]"
           placeholder="Your message here..."
         />
       </FormField>
@@ -284,7 +281,7 @@ function PhoneForm({ data, updateField }: any) {
         type="tel"
         value={data.phone || ""}
         onChange={(e) => updateField("phone", e.target.value)}
-        className="input-field"
+        className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
         placeholder="+1 234 567 8900"
         required
       />
@@ -302,7 +299,7 @@ function WiFiForm({ data, updateField }: any) {
           type="text"
           value={data.ssid || ""}
           onChange={(e) => updateField("ssid", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="MyWiFiNetwork"
           required
         />
@@ -312,7 +309,7 @@ function WiFiForm({ data, updateField }: any) {
           type="text"
           value={data.password || ""}
           onChange={(e) => updateField("password", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="WiFi password"
           required
         />
@@ -321,7 +318,7 @@ function WiFiForm({ data, updateField }: any) {
         <select
           value={data.encryption || "WPA"}
           onChange={(e) => updateField("encryption", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           required
         >
           <option value="WPA">WPA/WPA2</option>
@@ -353,7 +350,7 @@ function EventForm({ data, updateField }: any) {
           type="text"
           value={data.title || ""}
           onChange={(e) => updateField("title", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="Team Meeting"
           required
         />
@@ -364,7 +361,7 @@ function EventForm({ data, updateField }: any) {
             type="datetime-local"
             value={data.startDate || ""}
             onChange={(e) => updateField("startDate", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             required
           />
         </FormField>
@@ -373,7 +370,7 @@ function EventForm({ data, updateField }: any) {
             type="datetime-local"
             value={data.endDate || ""}
             onChange={(e) => updateField("endDate", e.target.value)}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             required
           />
         </FormField>
@@ -383,7 +380,7 @@ function EventForm({ data, updateField }: any) {
           type="text"
           value={data.location || ""}
           onChange={(e) => updateField("location", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="Conference Room A"
         />
       </FormField>
@@ -391,7 +388,7 @@ function EventForm({ data, updateField }: any) {
         <textarea
           value={data.description || ""}
           onChange={(e) => updateField("description", e.target.value)}
-          className="input-field min-h-[80px]"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium min-h-[80px]"
           placeholder="Event details..."
         />
       </FormField>
@@ -408,7 +405,7 @@ function LocationForm({ data, updateField }: any) {
           type="text"
           value={data.name || ""}
           onChange={(e) => updateField("name", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="Eiffel Tower"
         />
       </FormField>
@@ -419,7 +416,7 @@ function LocationForm({ data, updateField }: any) {
             step="any"
             value={data.latitude || ""}
             onChange={(e) => updateField("latitude", parseFloat(e.target.value))}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="48.8584"
             required
           />
@@ -430,7 +427,7 @@ function LocationForm({ data, updateField }: any) {
             step="any"
             value={data.longitude || ""}
             onChange={(e) => updateField("longitude", parseFloat(e.target.value))}
-            className="input-field"
+            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             placeholder="2.2945"
             required
           />
@@ -455,7 +452,7 @@ function WhatsAppForm({ data, updateField }: any) {
           type="tel"
           value={data.phone || ""}
           onChange={(e) => updateField("phone", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="+1 234 567 8900"
           required
         />
@@ -465,7 +462,7 @@ function WhatsAppForm({ data, updateField }: any) {
         <textarea
           value={data.message || ""}
           onChange={(e) => updateField("message", e.target.value)}
-          className="input-field min-h-[100px]"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium min-h-[100px]"
           placeholder="Hello! I found you via QR code..."
         />
       </FormField>
@@ -481,7 +478,7 @@ function SocialForm({ data, updateField }: any) {
         <select
           value={data.platform || "instagram"}
           onChange={(e) => updateField("platform", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           required
         >
           <option value="instagram">Instagram</option>
@@ -498,7 +495,7 @@ function SocialForm({ data, updateField }: any) {
           type="text"
           value={data.username || ""}
           onChange={(e) => updateField("username", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="yourhandle"
           required
         />
@@ -516,7 +513,7 @@ function CryptoForm({ data, updateField }: any) {
         <select
           value={data.currency || "bitcoin"}
           onChange={(e) => updateField("currency", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           required
         >
           <option value="bitcoin">Bitcoin (BTC)</option>
@@ -530,7 +527,7 @@ function CryptoForm({ data, updateField }: any) {
           type="text"
           value={data.address || ""}
           onChange={(e) => updateField("address", e.target.value)}
-          className="input-field font-mono text-sm"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium font-mono text-sm"
           placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
           required
         />
@@ -541,7 +538,7 @@ function CryptoForm({ data, updateField }: any) {
           step="any"
           value={data.amount || ""}
           onChange={(e) => updateField("amount", parseFloat(e.target.value) || undefined)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="0.001"
         />
       </FormField>
@@ -550,7 +547,7 @@ function CryptoForm({ data, updateField }: any) {
           type="text"
           value={data.label || ""}
           onChange={(e) => updateField("label", e.target.value)}
-          className="input-field"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
           placeholder="Donation"
         />
       </FormField>
@@ -571,3 +568,4 @@ function FormField({ label, icon: Icon, required, children }: any) {
     </div>
   );
 }
+
