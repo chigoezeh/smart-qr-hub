@@ -94,7 +94,7 @@ export default async function PublicLandingPage({ params }: PageProps) {
   };
 
   return (
-    <div className={`min-h-screen ${currentTheme.container} py-12 px-4 sm:px-6 lg:px-8`}>
+    <div className={`landing-container min-h-screen ${currentTheme.container} py-12 px-4 sm:px-6 lg:px-8`}>
       <div className="max-w-2xl mx-auto">
         {/* Profile Section */}
         <div className={`${currentTheme.card} rounded-3xl shadow-2xl border border-gray-200/50 p-8 mb-6`}>

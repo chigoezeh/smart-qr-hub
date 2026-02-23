@@ -20,6 +20,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ExternalLink, Trash2, Edit2, Plus } from "lucide-react";
 import { addPageLink, updatePageLink, deletePageLink, reorderLinks } from "@/actions/landing-page";
+import { getSocialIcon, getPlatformName } from "@/lib/social-icons";
 
 interface Link {
   id: number;
@@ -102,6 +103,7 @@ export default function LinkBuilder({ pageId, initialLinks }: LinkBuilderProps) 
   const [editingLink, setEditingLink] = useState<Link | null>(null);
   const [formData, setFormData] = useState({ title: "", url: "", icon: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [detectedPlatform, setDetectedPlatform] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -109,6 +111,24 @@ export default function LinkBuilder({ pageId, initialLinks }: LinkBuilderProps) 
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Auto-detect social media icon from URL
+  const handleUrlChange = (url: string) => {
+    setFormData({ ...formData, url });
+    
+    // Auto-detect icon if user hasn't manually set one
+    if (!formData.icon || formData.icon === "") {
+      const detectedIcon = getSocialIcon(url);
+      const platformName = getPlatformName(url);
+      
+      if (detectedIcon) {
+        setFormData({ ...formData, url, icon: detectedIcon });
+        setDetectedPlatform(platformName);
+      } else {
+        setDetectedPlatform(null);
+      }
+    }
+  };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -197,6 +217,7 @@ export default function LinkBuilder({ pageId, initialLinks }: LinkBuilderProps) 
     setIsAddingLink(false);
     setEditingLink(null);
     setFormData({ title: "", url: "", icon: "" });
+    setDetectedPlatform(null);
   };
 
   return (
@@ -239,15 +260,23 @@ export default function LinkBuilder({ pageId, initialLinks }: LinkBuilderProps) 
             <input
               type="url"
               value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+              onChange={(e) => handleUrlChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="https://example.com"
               required
             />
+            {detectedPlatform && (
+              <p className="mt-1 text-xs text-green-600">
+                ✓ Detected {detectedPlatform} - Icon auto-filled
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Icon (emoji)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Icon (emoji)
+              <span className="text-xs text-gray-500 ml-2">Auto-detected for popular platforms</span>
+            </label>
             <input
               type="text"
               value={formData.icon}

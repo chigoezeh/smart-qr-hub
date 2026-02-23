@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import LinkBuilder from "@/components/LinkBuilder";
+import CustomCssEditor from "@/components/CustomCssEditor";
 
 export default async function EditLandingPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
@@ -120,6 +121,9 @@ export default async function EditLandingPage({ params }: { params: Promise<{ id
             <LinkBuilder pageId={pageId} initialLinks={links} />
           </div>
         )}
+
+        {/* Custom CSS Editor */}
+        <CustomCssEditor pageId={pageId} initialCss={page.customCss} />
 
         {/* vCard info */}
         {page.type === "vcard" && (

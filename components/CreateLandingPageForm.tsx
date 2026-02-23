@@ -231,6 +231,34 @@ export default function CreateLandingPageForm() {
               </div>
             </div>
           )}
+
+          {/* Custom Type - Custom CSS Editor */}
+          {selectedType === "custom" && (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Code className="w-5 h-5 text-green-600" />
+                Custom CSS Styling
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Add custom CSS to style your page. You'll add links later after creating the page.
+              </p>
+              
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Custom CSS (Optional)
+                </label>
+                <textarea
+                  name="customCss"
+                  rows={8}
+                  className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all text-sm font-mono"
+                  placeholder={`.landing-container {\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n}\n\n.link-button {\n  background: white;\n  color: #667eea;\n  font-weight: bold;\n}`}
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  💡 Tip: Target <code className="bg-gray-200 px-1 rounded">.landing-container</code> for the page background and <code className="bg-gray-200 px-1 rounded">.link-button</code> for links
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

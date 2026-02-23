@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { landingPages, landingPageLinks } from "@/db/schema";
 import { getCurrentWorkspace } from "@/lib/workspace";
+import { isReservedSlug } from "@/lib/social-icons";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
@@ -14,6 +15,11 @@ export async function createLandingPage(formData: FormData) {
     const type = formData.get("type") as string;
     const slug = formData.get("slug") as string;
     const theme = formData.get("theme") as string || "default";
+
+    // Check if slug is reserved
+    if (isReservedSlug(slug)) {
+      return { success: false, error: "This slug is reserved and cannot be used. Please choose another." };
+    }
 
     // Validate slug is unique
     const [existingPage] = await db
@@ -165,5 +171,37 @@ export async function reorderLinks(pageId: number, linkIds: number[]) {
   } catch (error) {
     console.error("Failed to reorder links:", error);
     return { success: false, error: "Failed to reorder links" };
+  }
+}
+
+export async function updateLandingPageCss(pageId: number, formData: FormData) {
+  try {
+    const { workspace } = await getCurrentWorkspace();
+
+    // Verify page belongs to workspace
+    const [page] = await db
+      .select({ id: landingPages.id })
+      .from(landingPages)
+      .where(eq(landingPages.id, pageId))
+      .limit(1);
+
+    if (!page) {
+      return { success: false, error: "Page not found" };
+    }
+
+    const customCss = formData.get("customCss") as string;
+
+    await db
+      .update(landingPages)
+      .set({ customCss: customCss || null })
+      .where(eq(landingPages.id, pageId));
+
+    revalidatePath(`/dashboard/pages/${pageId}/edit`);
+    revalidatePath(`/l/${page.id}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update custom CSS:", error);
+    return { success: false, error: "Failed to update custom CSS" };
   }
 }

@@ -35,7 +35,7 @@ export default function TrackedLink({ link, buttonClass }: TrackedLinkProps) {
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}
-      className={`block w-full px-6 py-4 ${buttonClass} rounded-2xl font-semibold shadow-lg transition-all group`}
+      className={`link-button block w-full px-6 py-4 ${buttonClass} rounded-2xl font-semibold shadow-lg transition-all group`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
