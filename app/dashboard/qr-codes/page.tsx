@@ -24,6 +24,7 @@ export default async function QRCodesPage() {
       shortCode: qrCodes.shortCode,
       destinationUrl: qrCodes.destinationUrl,
       contentType: qrCodes.contentType,
+      contentData: qrCodes.contentData,
       createdAt: qrCodes.createdAt,
       status: qrCodes.status,
       scanCount: sql<number>`count(${scans.id})`.mapWith(Number),

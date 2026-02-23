@@ -21,6 +21,7 @@ interface QRCodeData {
   maxScans: number | null;
   currentScans: number;
   geofence: string | null;
+  contentData?: any;
 }
 
 interface DashboardContentProps {
@@ -148,6 +149,7 @@ export default function DashboardContent({ data }: DashboardContentProps) {
                     maxScans={row.maxScans}
                     currentScans={row.currentScans}
                     geofence={row.geofence}
+                    contentData={row.contentData}
                   />
                 ))
               )}

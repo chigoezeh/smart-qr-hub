@@ -1,12 +1,14 @@
 "use client";
 
-import { Copy, ExternalLink, Eye, BarChart3, ExternalLinkIcon } from "lucide-react";
+import { Copy, ExternalLink, Eye, BarChart3, ExternalLinkIcon, Edit3 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { QRContentType } from "@/types/qr-content";
 import QRTypeBadge from "./QRTypeBadge";
 import SecurityBadges from "./SecurityBadges";
+import DeleteQRButton from "./DeleteQRButton";
+import DownloadQRButton from "./DownloadQRButton";
 
 interface QRTableRowProps {
   id: number;
@@ -21,6 +23,7 @@ interface QRTableRowProps {
   maxScans: number | null;
   currentScans: number;
   geofence: string | null;
+  contentData?: any;
 }
 
 export default function QRTableRow({
@@ -35,6 +38,7 @@ export default function QRTableRow({
   expiresAt,
   maxScans,
   currentScans,
+  contentData,
   geofence,
 }: QRTableRowProps) {
   const [copied, setCopied] = useState(false);
@@ -145,6 +149,24 @@ export default function QRTableRow({
             <BarChart3 className="w-4 h-4" />
             <span className="hidden xl:inline">Analytics</span>
           </Link>
+
+          <Link
+            href={`/dashboard/edit/${id}`}
+            className="sm:opacity-0 sm:group-hover:opacity-100 transition-all p-2 hover:bg-indigo-50 rounded-lg border border-transparent hover:border-indigo-200"
+            title="Edit QR Code"
+          >
+            <Edit3 className="w-4 h-4 text-gray-600 hover:text-indigo-600" />
+          </Link>
+
+          <DownloadQRButton
+            shortCode={shortCode}
+            title={title}
+            contentType={contentType}
+            contentData={contentData}
+            destinationUrl={destinationUrl}
+          />
+
+          <DeleteQRButton id={id} title={title} />
 
           <button
             onClick={copyShortLink}

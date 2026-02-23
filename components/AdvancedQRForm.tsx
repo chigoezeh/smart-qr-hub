@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createSmartLink } from "@/actions/qr";
+import { updateQRCode } from "@/actions/qr-update";
 import { Sparkles, Download, Loader2, Smartphone, Clock, Globe2, ArrowLeft, QrCode as QrIcon, Check, AlertCircle, Zap, TrendingUp, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { ScheduleBuilder } from "./ScheduleBuilder";
@@ -29,7 +30,12 @@ interface LanguageRoute {
   url: string;
 }
 
-export default function AdvancedQRForm() {
+interface AdvancedQRFormProps {
+  editMode?: boolean;
+  existingData?: any;
+}
+
+export default function AdvancedQRForm({ editMode = false, existingData }: AdvancedQRFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [qrImage, setQrImage] = useState<string | null>(null);
@@ -63,6 +69,56 @@ export default function AdvancedQRForm() {
 
   // Debounced auto-generation
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Initialize form with existing data in edit mode
+  useEffect(() => {
+    if (editMode && existingData) {
+      setTitle(existingData.title || "");
+      setContentType(existingData.contentType || "url");
+      setContentData(existingData.contentData || {});
+      setShortCode(existingData.shortCode || null);
+      
+      // Initialize schedules
+      if (existingData.schedules && Array.isArray(existingData.schedules)) {
+        setSchedules(existingData.schedules.map((s: any, index: number) => ({
+          ...s,
+          id: `schedule-${index}`,
+        })));
+        setShowSchedules(true);
+      }
+      
+      // Initialize language routes
+      if (existingData.languageRoutes) {
+        const routes = Object.entries(existingData.languageRoutes).map(([lang, url], index) => ({
+          id: `lang-${index}`,
+          language: lang,
+          languageName: lang, 
+          url: url as string,
+        }));
+        setLanguageRoutes(routes);
+        setShowLanguages(true);
+      }
+      
+      // Initialize security settings
+      setIsPasswordProtected(existingData.isPasswordProtected || false);
+      setExpiresAt(existingData.expiresAt ? new Date(existingData.expiresAt).toISOString().slice(0, 16) : "");
+      setMaxScans(existingData.maxScans?.toString() || "");
+      
+      if (existingData.geofence) {
+        setGeofence({
+          enabled: true,
+          latitude: existingData.geofence.latitude?.toString() || "",
+          longitude: existingData.geofence.longitude?.toString() || "",
+          radiusKm: existingData.geofence.radiusKm?.toString() || "",
+        });
+      }
+      
+      // Show advanced sections if they have data
+      if (existingData.iosUrl || existingData.androidUrl || existingData.isPasswordProtected || existingData.expiresAt || existingData.maxScans || existingData.geofence) {
+        setShowAdvanced(true);
+      }
+    }
+  }, [editMode, existingData]);
   
   // Check if content is valid for QR generation
   const isContentValid = () => {
@@ -207,17 +263,29 @@ export default function AdvancedQRForm() {
 
     startTransition(async () => {
       try {
-        const result = await createSmartLink(formData);
-        if (result.success) {
-          setQrImage(result.qrImageBase64);
-          setShortCode(result.shortCode);
-          toast.success("QR Code created successfully!", {
-            description: `Short code: ${result.shortCode}`,
-          });
+        if (editMode && existingData) {
+          // Update existing QR code
+          const result = await updateQRCode(existingData.id, formData);
+          if (result.success) {
+            toast.success("QR Code updated successfully!");
+            router.push("/dashboard/qr-codes");
+          } else {
+            toast.error(result.error || "Failed to update QR code");
+          }
+        } else {
+          // Create new QR code
+          const result = await createSmartLink(formData);
+          if (result.success) {
+            setQrImage(result.qrImageBase64);
+            setShortCode(result.shortCode);
+            toast.success("QR Code created successfully!", {
+              description: `Short code: ${result.shortCode}`,
+            });
+          }
         }
       } catch (error) {
-        console.error("Failed to create QR:", error);
-        toast.error("Failed to create QR code", {
+        console.error("Failed to save QR:", error);
+        toast.error(editMode ? "Failed to update QR code" : "Failed to create QR code", {
           description: "Please try again or check your inputs.",
         });
       }
@@ -280,10 +348,10 @@ export default function AdvancedQRForm() {
             </div>
             <div>
               <h1 className="text-4xl font-black text-gray-900 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
-                Create Smart QR Code
+                {editMode ? "Edit QR Code" : "Create Smart QR Code"}
               </h1>
               <p className="text-gray-600 mt-1 font-medium">
-                Auto-generated with real-time preview • Advanced routing & analytics
+                {editMode ? "Update your QR code settings and configuration" : "Auto-generated with real-time preview • Advanced routing & analytics"}
               </p>
             </div>
           </div>
@@ -606,7 +674,36 @@ export default function AdvancedQRForm() {
                 </div>
 
                 {/* Action Buttons */}
-                {qrImage && shortCode && (
+                {editMode ? (
+                  <div className="space-y-3">
+                    <button
+                      type="submit"
+                      disabled={isPending}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                    >
+                      {isPending ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Saving Changes...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-5 h-5" />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
+                    
+                    <Link
+                      href="/dashboard/qr-codes"
+                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold transition-all"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                      Cancel
+                    </Link>
+                  </div>
+                ) : (
+                  qrImage && shortCode && (
                   <div className="space-y-3">
                     <a
                       href={qrImage}
@@ -633,6 +730,7 @@ export default function AdvancedQRForm() {
                       Create Another
                     </button>
                   </div>
+                  )
                 )}
               </div>
             </div>
