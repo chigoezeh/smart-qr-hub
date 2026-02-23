@@ -9,6 +9,8 @@ import { revalidatePath } from "next/cache";
 export async function createSmartLink(formData: FormData) {
   const destinationUrl = formData.get("destinationUrl") as string;
   const title = formData.get("title") as string;
+  const iosUrl = formData.get("iosUrl") as string;
+  const androidUrl = formData.get("androidUrl") as string;
 
   if (!destinationUrl) throw new Error("Destination URL is required");
 
@@ -18,6 +20,8 @@ export async function createSmartLink(formData: FormData) {
     shortCode,
     destinationUrl,
     title: title || "Untitled Link",
+    iosUrl: iosUrl || null,
+    androidUrl: androidUrl || null,
   });
 
   const routingUrl = `https://192.168.1.189:3000/q/${shortCode}`;

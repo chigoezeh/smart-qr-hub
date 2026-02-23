@@ -11,7 +11,12 @@ export async function GET(
 
   try {
     const [qrRecord] = await db
-      .select({ id: qrCodes.id, url: qrCodes.destinationUrl })
+      .select({ 
+        id: qrCodes.id, 
+        url: qrCodes.destinationUrl,
+        iosUrl: qrCodes.iosUrl,
+        androidUrl: qrCodes.androidUrl
+      })
       .from(qrCodes)
       .where(eq(qrCodes.shortCode, shortCode))
       .limit(1);
@@ -30,7 +35,15 @@ export async function GET(
       deviceType: deviceType,
     }).catch(console.error);
 
-    return NextResponse.redirect(qrRecord.url, 302);
+    // OS-Based Smart Routing Logic
+    let targetUrl = qrRecord.url;
+    if (os === "iOS" && qrRecord.iosUrl) {
+      targetUrl = qrRecord.iosUrl;
+    } else if (os === "Android" && qrRecord.androidUrl) {
+      targetUrl = qrRecord.androidUrl;
+    }
+
+    return NextResponse.redirect(targetUrl, 302);
 
   } catch (error) {
     console.error("Redirect Engine Error:", error);

@@ -8,6 +8,8 @@ export const qrCodes = pgTable("qr_codes", {
   title: text("title"), 
   isDynamic: boolean("is_dynamic").default(true).notNull(), 
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  iosUrl: text("ios_url"),
+  androidUrl: text("android_url"),
 });
 
 // TABLE 2: The Analytics (The "Tracker")

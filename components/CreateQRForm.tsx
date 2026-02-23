@@ -41,6 +41,31 @@ export default function CreateQRForm() {
             placeholder="https://example.com"
           />
         </div>
+
+        <div className="pt-4 border-t border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Advanced Routing (Optional)</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600">iOS Fallback URL</label>
+              <input 
+                type="url" 
+                name="iosUrl" 
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500 text-sm"
+                placeholder="https://apps.apple.com/..."
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600">Android Fallback URL</label>
+              <input 
+                type="url" 
+                name="androidUrl" 
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500 text-sm"
+                placeholder="https://play.google.com/..."
+              />
+            </div>
+          </div>
+        </div>
+
         <button 
           type="submit" 
           disabled={isPending}
