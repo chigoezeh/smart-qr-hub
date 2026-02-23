@@ -7,6 +7,9 @@ import { getCurrentWorkspace } from "@/lib/workspace";
 import { ScansOverTimeChart } from "@/components/analytics/ScansOverTimeChart";
 import { OSBreakdownChart } from "@/components/analytics/OSBreakdownChart";
 import { TopLocationsTable } from "@/components/analytics/TopLocationsTable";
+import { DeviceTypeChart } from "@/components/analytics/DeviceTypeChart";
+import { UTMTracking } from "@/components/analytics/UTMTracking";
+import { ExportCSVButton } from "@/components/analytics/ExportCSVButton";
 import { ArrowLeft, QrCode, Calendar, MapPin, Smartphone } from "lucide-react";
 import { format, subDays, parseISO } from "date-fns";
 
@@ -71,6 +74,17 @@ export default async function AnalyticsPage({ params, searchParams }: PageProps)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value);
 
+  // Process data for Device Type chart
+  const deviceCounts = new Map<string, number>();
+  scansData.forEach((scan) => {
+    const device = scan.deviceType || "Other";
+    deviceCounts.set(device, (deviceCounts.get(device) || 0) + 1);
+  });
+
+  const deviceTypeData = Array.from(deviceCounts.entries())
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count);
+
   // Process data for Top Locations table
   const locationCounts = new Map<string, { city: string; country: string; scans: number }>();
   scansData.forEach((scan) => {
@@ -119,21 +133,30 @@ export default async function AnalyticsPage({ params, searchParams }: PageProps)
               </p>
             </div>
             
-            {/* Date Range Selector */}
-            <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-1">
-              {["7", "30", "90", "365"].map((days) => (
-                <Link
-                  key={days}
-                  href={`/dashboard/analytics/${qrCodeId}?range=${days}`}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    range === days
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {days === "365" ? "1 Year" : `${days} Days`}
-                </Link>
-              ))}
+            <div className="flex items-center gap-3">
+              {/* Export CSV Button */}
+              <ExportCSVButton 
+                scans={scansData} 
+                qrCodeTitle={qrCode.title || "Untitled"} 
+                shortCode={qrCode.shortCode}
+              />
+              
+              {/* Date Range Selector */}
+              <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-1">
+                {["7", "30", "90", "365"].map((days) => (
+                  <Link
+                    key={days}
+                    href={`/dashboard/analytics/${qrCodeId}?range=${days}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      range === days
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {days === "365" ? "1 Year" : `${days} Days`}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -191,7 +214,14 @@ export default async function AnalyticsPage({ params, searchParams }: PageProps)
           
           <OSBreakdownChart data={osBreakdownData} />
           
+          <DeviceTypeChart data={deviceTypeData} />
+        </div>
+
+        {/* Locations and UTM Tracking */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <TopLocationsTable data={topLocationsData} totalScans={totalScans} />
+          
+          <UTMTracking scans={scansData} />
         </div>
       </div>
     </div>

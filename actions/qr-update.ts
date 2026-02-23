@@ -47,6 +47,10 @@ export async function updateQRCode(id: number, formData: FormData) {
     const maxScansRaw = formData.get("maxScans") as string | null;
     const geofenceRaw = formData.get("geofence") as string | null;
 
+    // Retargeting pixels
+    const facebookPixelId = formData.get("facebookPixelId") as string | null;
+    const googleTagManagerId = formData.get("googleTagManagerId") as string | null;
+
     // Parse content data
     let contentData = null;
     if (contentDataRaw) {
@@ -71,6 +75,8 @@ export async function updateQRCode(id: number, formData: FormData) {
       expiresAt: expiresAtRaw ? new Date(expiresAtRaw) : null,
       maxScans: maxScansRaw ? parseInt(maxScansRaw, 10) : null,
       geofence: geofenceRaw ? JSON.parse(geofenceRaw) : null,
+      facebookPixelId: facebookPixelId || null,
+      googleTagManagerId: googleTagManagerId || null,
     };
 
     // Hash password if provided and protection is enabled

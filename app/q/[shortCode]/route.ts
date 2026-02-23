@@ -124,6 +124,9 @@ export async function GET(
         maxScans: qrCodes.maxScans,
         currentScans: qrCodes.currentScans,
         geofence: qrCodes.geofence,
+        // Retargeting pixels
+        facebookPixelId: qrCodes.facebookPixelId,
+        googleTagManagerId: qrCodes.googleTagManagerId,
       })
       .from(qrCodes)
       .where(eq(qrCodes.shortCode, shortCode))
@@ -274,6 +277,16 @@ export async function GET(
       targetUrl = qrRecord.androidUrl;
     }
 
+    // Check if tracking pixels are configured
+    const hasPixels = qrRecord.facebookPixelId || qrRecord.googleTagManagerId;
+    
+    if (hasPixels) {
+      // Redirect to pixel page for tracking, which will then redirect to target
+      const pixelPageUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/pixel/${shortCode}?target=${encodeURIComponent(targetUrl)}`;
+      return NextResponse.redirect(pixelPageUrl, 302);
+    }
+
+    // Direct redirect without pixel tracking
     return NextResponse.redirect(targetUrl, 302);
 
   } catch (error) {

@@ -33,6 +33,10 @@ export async function createSmartLink(formData: FormData) {
   const expiresAtStr = formData.get("expiresAt") as string;
   const maxScansStr = formData.get("maxScans") as string;
   const geofenceJson = formData.get("geofence") as string;
+  
+  // Retargeting pixels
+  const facebookPixelId = formData.get("facebookPixelId") as string;
+  const googleTagManagerId = formData.get("googleTagManagerId") as string;
 
   // Parse content data
   let contentData: any = {};
@@ -116,6 +120,9 @@ export async function createSmartLink(formData: FormData) {
     expiresAt,
     maxScans,
     geofence: geofence as any,
+    // Retargeting pixels
+    facebookPixelId: facebookPixelId || null,
+    googleTagManagerId: googleTagManagerId || null,
   });
 
   // For URL types with smart routing, use our redirect URL

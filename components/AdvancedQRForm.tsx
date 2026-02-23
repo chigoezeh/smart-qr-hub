@@ -67,6 +67,10 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
     radiusKm: "",
   });
 
+  // Retargeting pixels
+  const [facebookPixelId, setFacebookPixelId] = useState("");
+  const [googleTagManagerId, setGoogleTagManagerId] = useState("");
+
   // Debounced auto-generation
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -112,6 +116,10 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
           radiusKm: existingData.geofence.radiusKm?.toString() || "",
         });
       }
+      
+      // Initialize retargeting pixels
+      setFacebookPixelId(existingData.facebookPixelId || "");
+      setGoogleTagManagerId(existingData.googleTagManagerId || "");
       
       // Show advanced sections if they have data
       if (existingData.iosUrl || existingData.androidUrl || existingData.isPasswordProtected || existingData.expiresAt || existingData.maxScans || existingData.geofence) {
@@ -196,6 +204,14 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
       }));
     }
 
+    // Add retargeting pixels
+    if (facebookPixelId) {
+      formData.set("facebookPixelId", facebookPixelId);
+    }
+    if (googleTagManagerId) {
+      formData.set("googleTagManagerId", googleTagManagerId);
+    }
+
     try {
       const result = await createSmartLink(formData);
       if (result.success) {
@@ -259,6 +275,14 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
         longitude: parseFloat(geofence.longitude),
         radiusKm: parseFloat(geofence.radiusKm),
       }));
+    }
+
+    // Add retargeting pixels
+    if (facebookPixelId) {
+      formData.set("facebookPixelId", facebookPixelId);
+    }
+    if (googleTagManagerId) {
+      formData.set("googleTagManagerId", googleTagManagerId);
     }
 
     startTransition(async () => {
@@ -571,6 +595,64 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
                 geofence={geofence}
                 setGeofence={setGeofence}
               />
+
+              {/* Retargeting & Analytics Integration */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <div className="w-full px-6 py-5 bg-gradient-to-r from-orange-50 via-red-50 to-orange-50 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 rounded-xl">
+                      <Activity className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <h2 className="text-lg font-bold text-gray-800">Retargeting Pixels</h2>
+                      <p className="text-xs text-gray-600 font-medium">Track scans with Facebook Pixel & Google Tag Manager</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Facebook Pixel ID
+                    </label>
+                    <input
+                      type="text"
+                      value={facebookPixelId}
+                      onChange={(e) => setFacebookPixelId(e.target.value)}
+                      className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                      placeholder="123456789012345"
+                    />
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      Add your Facebook Pixel ID to track scans for retargeting campaigns
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Google Tag Manager ID
+                    </label>
+                    <input
+                      type="text"
+                      value={googleTagManagerId}
+                      onChange={(e) => setGoogleTagManagerId(e.target.value)}
+                      className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                      placeholder="GTM-XXXXXXX"
+                    />
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      Add your GTM container ID to integrate with Google Analytics and other tags
+                    </p>
+                  </div>
+
+                  {(facebookPixelId || googleTagManagerId) && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                      <p className="text-xs text-blue-700 font-medium">
+                        <strong>Note:</strong> Tracking pixels will fire a "QR Scan" event when users scan this code. 
+                        This adds a brief delay (~500ms) before redirecting.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* RIGHT: Live Preview Sidebar (1/3 width) */}
