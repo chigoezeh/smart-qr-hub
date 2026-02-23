@@ -38,25 +38,27 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <QrCode className="w-7 h-7 text-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <QrCode className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">QR Command Center</h1>
-                <p className="text-sm text-gray-600 mt-0.5">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">QR Command Center</h1>
+                <p className="text-xs sm:text-sm text-gray-600 mt-0.5 truncate">
                   {workspace.name} · <span className="capitalize">{workspace.plan}</span> · {role}
                 </p>
               </div>
             </div>
-            <UserButton afterSignOutUrl="/" />
+            <div className="self-end sm:self-auto">
+              <UserButton afterSignOutUrl="/" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard title="Total QR Codes" value={totalQRCodes} icon="qr" color="blue" />
@@ -65,44 +67,44 @@ export default async function DashboardPage() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column: Generator Form */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-2 lg:order-1">
             <CreateQRForm />
           </div>
 
           {/* Right Column: Analytics Table */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-1 lg:order-2">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               {/* Table Header */}
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-                <h2 className="text-xl font-bold text-gray-800">Active Links & Performance</h2>
-                <p className="text-sm text-gray-600 mt-1">
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800">Active Links & Performance</h2>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   {totalQRCodes} total {totalQRCodes === 1 ? "link" : "links"}
                 </p>
               </div>
 
               {/* Table */}
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
-                      <th className="p-4 text-left">QR Code</th>
-                      <th className="p-4 text-left">Destination</th>
-                      <th className="p-4 text-left">Status</th>
-                      <th className="p-4 text-right">Scans</th>
+                      <th className="p-3 sm:p-4 text-left">QR Code</th>
+                      <th className="p-3 sm:p-4 text-left hidden sm:table-cell">Destination</th>
+                      <th className="p-3 sm:p-4 text-left">Status</th>
+                      <th className="p-3 sm:p-4 text-right">Scans</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {analyticsData.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="p-12 text-center">
+                        <td colSpan={4} className="p-8 sm:p-12 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-500">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                              <QrCode className="w-8 h-8 text-gray-400" />
+                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                              <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                             </div>
-                            <p className="font-medium">No QR codes yet</p>
-                            <p className="text-sm">Create your first smart link to get started!</p>
+                            <p className="font-medium text-sm sm:text-base">No QR codes yet</p>
+                            <p className="text-xs sm:text-sm">Create your first smart link to get started!</p>
                           </div>
                         </td>
                       </tr>

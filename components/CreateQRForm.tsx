@@ -2,20 +2,31 @@
 
 import { useState, useTransition } from "react";
 import { createSmartLink } from "../actions/qr";
-import { Sparkles, Download, Loader2, Smartphone } from "lucide-react";
+import { Sparkles, Download, Loader2, Smartphone, Clock, Globe2, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CreateQRForm() {
   const [isPending, startTransition] = useTransition();
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showSchedules, setShowSchedules] = useState(false);
+  const [showLanguages, setShowLanguages] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
       try {
         const result = await createSmartLink(formData);
-        if (result.success) setQrImage(result.qrImageBase64);
+        if (result.success) {
+          setQrImage(result.qrImageBase64);
+          toast.success("QR Code created successfully!", {
+            description: `Short code: ${result.shortCode}`,
+          });
+        }
       } catch (error) {
         console.error("Failed to create QR:", error);
+        toast.error("Failed to create QR code", {
+          description: "Please try again or check your inputs.",
+        });
       }
     });
   };
@@ -98,6 +109,82 @@ export default function CreateQRForm() {
                 placeholder="https://play.google.com/..."
               />
               <p className="text-xs text-gray-500 mt-1">Redirect Android users here instead</p>
+            </div>
+          </div>
+        )}
+
+        {/* Time-Based Routing Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowSchedules(!showSchedules)}
+          className="flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
+        >
+          <Clock className="w-4 h-4" />
+          {showSchedules ? "Hide" : "Show"} Time-Based Routing
+        </button>
+
+        {/* Schedules Section */}
+        {showSchedules && (
+          <div className="pt-4 border-t border-gray-100 space-y-3 animate-in slide-in-from-top-2">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-800 font-medium mb-2">
+                📅 Schedule Format (JSON Array)
+              </p>
+              <code className="text-xs text-blue-900 block bg-white p-2 rounded overflow-x-auto">
+                {`[{"days":[1,2,3,4,5],"startTime":"09:00","endTime":"17:00","url":"https://business.com"}]`}
+              </code>
+              <p className="text-xs text-blue-700 mt-2">
+                Days: 0=Sunday, 6=Saturday. Time in 24h format.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Schedules (JSON)
+              </label>
+              <textarea
+                name="schedules"
+                rows={4}
+                className="w-full rounded-xl border-2 border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm font-mono"
+                placeholder='[{"days":[1,2,3,4,5],"startTime":"09:00","endTime":"17:00","url":"https://business-hours.com"}]'
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Language Routing Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowLanguages(!showLanguages)}
+          className="flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+        >
+          <Globe2 className="w-4 h-4" />
+          {showLanguages ? "Hide" : "Show"} Language-Based Routing
+        </button>
+
+        {/* Language Routes Section */}
+        {showLanguages && (
+          <div className="pt-4 border-t border-gray-100 space-y-3 animate-in slide-in-from-top-2">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-xs text-green-800 font-medium mb-2">
+                🌍 Language Routes Format (JSON Object)
+              </p>
+              <code className="text-xs text-green-900 block bg-white p-2 rounded overflow-x-auto">
+                {`{"en":"https://english.com","es":"https://spanish.com","default":"https://fallback.com"}`}
+              </code>
+              <p className="text-xs text-green-700 mt-2">
+                Use ISO language codes (en, es, fr, de, etc.)
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Language Routes (JSON)
+              </label>
+              <textarea
+                name="languageRoutes"
+                rows={3}
+                className="w-full rounded-xl border-2 border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm font-mono"
+                placeholder='{"en":"https://english.com","es":"https://spanish.com","default":"https://fallback.com"}'
+              />
             </div>
           </div>
         )}

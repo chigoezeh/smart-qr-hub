@@ -15,8 +15,30 @@ export async function createSmartLink(formData: FormData) {
   const title = formData.get("title") as string;
   const iosUrl = formData.get("iosUrl") as string;
   const androidUrl = formData.get("androidUrl") as string;
+  const schedulesJson = formData.get("schedules") as string;
+  const languageRoutesJson = formData.get("languageRoutes") as string;
 
   if (!destinationUrl) throw new Error("Destination URL is required");
+
+  // Parse JSON fields if provided
+  let schedules = null;
+  let languageRoutes = null;
+
+  try {
+    if (schedulesJson && schedulesJson.trim()) {
+      schedules = JSON.parse(schedulesJson);
+    }
+  } catch (e) {
+    console.error("Invalid schedules JSON:", e);
+  }
+
+  try {
+    if (languageRoutesJson && languageRoutesJson.trim()) {
+      languageRoutes = JSON.parse(languageRoutesJson);
+    }
+  } catch (e) {
+    console.error("Invalid language routes JSON:", e);
+  }
 
   const shortCode = crypto.randomBytes(3).toString("hex");
 
@@ -27,6 +49,8 @@ export async function createSmartLink(formData: FormData) {
     title: title || "Untitled Link",
     iosUrl: iosUrl || null,
     androidUrl: androidUrl || null,
+    schedules: schedules as any,
+    languageRoutes: languageRoutes as any,
   });
 
   // Use environment variable for base URL
