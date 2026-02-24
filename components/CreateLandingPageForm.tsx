@@ -6,6 +6,7 @@ import { createLandingPage } from "@/actions/landing-page";
 import { Globe, Palette, Sparkles, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import TemplateSelector from "./TemplateSelector";
+import AIAssistantPanel from "./AIAssistantPanel";
 import { LandingPageTemplate, LandingPageCategory } from "@/types/landing-page";
 
 const THEMES = [
@@ -270,6 +271,19 @@ export default function CreateLandingPageForm() {
           </div>
         </>
       )}
+
+      {/* AI Assistant */}
+      <AIAssistantPanel
+        mode="create"
+        workspaceData={{
+          name: "My Workspace",
+          industry: "General",
+        }}
+        onTemplateSelect={(template) => {
+          setSelectedTemplate(template as LandingPageTemplate);
+          toast.success(`Template selected: ${template}`);
+        }}
+      />
     </form>
   );
 }

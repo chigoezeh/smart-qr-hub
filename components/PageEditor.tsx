@@ -10,6 +10,7 @@ import BlockSettingsPanel from "./BlockSettingsPanel";
 import { BLOCK_TYPES, getAllBlockTypes } from "@/lib/block-registry";
 import { BlockType } from "@/types/landing-page";
 import AdvancedPageSettings from "./AdvancedPageSettings";
+import AIAssistantPanel from "./AIAssistantPanel";
 
 interface PageEditorProps {
   pageId: number;
@@ -338,6 +339,27 @@ export default function PageEditor({ pageId, initialBlocks, pageSlug }: PageEdit
         block={editingBlock} 
         onClose={() => setEditingBlockId(null)} 
         onUpdate={handleUpdateFromSettings}
+      />
+
+      {/* AI Assistant */}
+      <AIAssistantPanel
+        mode="edit"
+        pageData={{
+          id: pageId,
+          title: pageSlug,
+          content: blocks.map(b => b.title).join(" "),
+          template: "biolink",
+        }}
+        workspaceData={{
+          name: "My Workspace",
+          industry: "General",
+        }}
+        onImageSelect={(imageUrl) => {
+          toast.success("Image selected! Add an image block to use it.");
+        }}
+        onMetaApply={(meta) => {
+          toast.success("Meta tags ready to apply!");
+        }}
       />
     </div>
     </>
