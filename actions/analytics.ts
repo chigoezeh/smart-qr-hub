@@ -139,15 +139,23 @@ export async function getPageAnalytics(pageId: number, days = 30) {
       .slice(0, 5)
       .map(([id]) => Number(id));
 
-    const topBlocks = await db.query.landingPageBlocks.findMany({
-      where: sql`${landingPageBlocks.id} = ANY(${topBlockIds})`,
-      columns: { id: true, blockType: true, title: true },
-    });
+    let topBlocksWithViews: Array<{ id: number; blockType: string; title: string | null; views: number }> = [];
+    
+    if (topBlockIds.length > 0) {
+      const topBlocks = await db
+        .select({
+          id: landingPageBlocks.id,
+          blockType: landingPageBlocks.blockType,
+          title: landingPageBlocks.title,
+        })
+        .from(landingPageBlocks)
+        .where(sql`${landingPageBlocks.id} = ANY(${topBlockIds})`);
 
-    const topBlocksWithViews = topBlocks.map(block => ({
-      ...block,
-      views: blockViews[block.id] || 0,
-    })).sort((a, b) => b.views - a.views);
+      topBlocksWithViews = topBlocks.map(block => ({
+        ...block,
+        views: blockViews[block.id] || 0,
+      })).sort((a, b) => b.views - a.views);
+    }
 
     // UTM campaign tracking
     const utmCampaigns = views
