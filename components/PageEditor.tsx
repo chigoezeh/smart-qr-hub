@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { LandingPageBlock } from "@/types/landing-page";
 import { createBlock, updateBlock, deleteBlock, reorderBlocks, duplicateBlock } from "@/actions/blocks";
-import { Plus, GripVertical, Eye, EyeOff, Settings, Copy, Trash2, Save } from "lucide-react";
+import { Plus, GripVertical, Eye, EyeOff, Settings, Copy, Trash2, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import BlockRenderer from "./blocks/BlockRenderer";
 import BlockSettingsPanel from "./BlockSettingsPanel";
 import { BLOCK_TYPES, getAllBlockTypes } from "@/lib/block-registry";
 import { BlockType } from "@/types/landing-page";
+import AdvancedPageSettings from "./AdvancedPageSettings";
 
 interface PageEditorProps {
   pageId: number;
@@ -22,6 +23,7 @@ export default function PageEditor({ pageId, initialBlocks, pageSlug }: PageEdit
   const [showAddBlock, setShowAddBlock] = useState(false);
   const [draggedBlockId, setDraggedBlockId] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<number | null>(null);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const selectedBlock = blocks.find(b => b.id === selectedBlockId);
   const editingBlock = blocks.find(b => b.id === editingBlockId) || null;
@@ -138,6 +140,25 @@ export default function PageEditor({ pageId, initialBlocks, pageSlug }: PageEdit
   };
 
   return (
+    <>
+      {/* Advanced Settings Button */}
+      <div className="mb-4 flex justify-end">
+        <button
+          onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/30"
+        >
+          <Sparkles className="w-4 h-4" />
+          {showAdvancedSettings ? "Hide Advanced Settings" : "Advanced Settings"}
+        </button>
+      </div>
+
+      {/* Advanced Settings Panel */}
+      {showAdvancedSettings && (
+        <div className="mb-6">
+          <AdvancedPageSettings pageId={pageId} pageSlug={pageSlug} />
+        </div>
+      )}
+
     <div className="flex gap-6 h-[calc(100vh-180px)]">
       {/* Left Panel - Block List */}
       <div className="w-96 flex-shrink-0 bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col">
@@ -319,6 +340,7 @@ export default function PageEditor({ pageId, initialBlocks, pageSlug }: PageEdit
         onUpdate={handleUpdateFromSettings}
       />
     </div>
+    </>
   );
 }
 
@@ -393,3 +415,4 @@ function getDefaultContentForBlockType(blockType: BlockType): any {
 
   return defaults[blockType] || {};
 }
+

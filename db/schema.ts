@@ -170,6 +170,9 @@ export const landingPages = pgTable("landing_pages", {
   requiresPassword: boolean("requires_password").default(false).notNull(),
   passwordHash: text("password_hash"),
   
+  // Lead Notification Configuration
+  notificationConfig: jsonb("notification_config"), // {notifications: [...], webhookUrl, apiKey, emailService}
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   publishedAt: timestamp("published_at"),
