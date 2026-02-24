@@ -17,7 +17,6 @@ import type {
   SocialContent,
   CryptoContent,
 } from "@/types/qr-content";
-import { env } from "@/lib/env";
 
 /**
  * Encodes content data into QR-scannable format
@@ -65,8 +64,9 @@ function encodeURL(data: URLContent): string {
 function encodeLandingPage(data: LandingPageContent): string {
   // This will be handled via redirect - return the short code URL
   // The actual redirect logic is in app/q/[shortCode]/route.ts
-  // For now, just return a placeholder that won't be used directly
-  let baseUrl = `${env.NEXT_PUBLIC_APP_URL}/l/${data.slug}`;
+  // For client-side QR generation, we construct the landing page URL
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+  let baseUrl = `${appUrl}/l/${data.slug}`;
   
   if (data.utm) {
     const utmStr = data.utm.startsWith("?") ? data.utm : `?${data.utm}`;
