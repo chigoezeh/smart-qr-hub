@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
       timeOnPage,
       blocksViewed,
       linksClicked,
+      clickPositions,
+      customEvents,
       didConvert,
       conversionType,
     } = body;
@@ -70,6 +72,8 @@ export async function POST(request: NextRequest) {
       timeOnPage: timeOnPage || null,
       blocksViewed: blocksViewed || null,
       linksClicked: linksClicked || null,
+      clickPositions: clickPositions || null,
+      customEvents: customEvents || null,
       didConvert: didConvert || false,
       conversionType: conversionType || null,
     });

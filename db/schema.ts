@@ -278,6 +278,8 @@ export const landingPageViews = pgTable("landing_page_views", {
   timeOnPage: integer("time_on_page"), // seconds
   blocksViewed: jsonb("blocks_viewed"), // Array of block IDs
   linksClicked: jsonb("links_clicked"), // Array of link IDs
+  clickPositions: jsonb("click_positions"), // Array of {x, y, timestamp} for heatmaps
+  customEvents: jsonb("custom_events"), // Array of custom event names
   
   // Conversion
   didConvert: boolean("did_convert").default(false).notNull(),

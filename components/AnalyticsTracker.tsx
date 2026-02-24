@@ -6,11 +6,19 @@ interface AnalyticsTrackerProps {
   slug: string;
 }
 
+interface ClickPosition {
+  x: number; // Percentage of viewport width (0-1)
+  y: number; // Percentage of viewport height (0-1)
+  timestamp: number;
+}
+
 export default function AnalyticsTracker({ slug }: AnalyticsTrackerProps) {
   const viewSentRef = useRef(false);
   const startTimeRef = useRef(Date.now());
   const blocksViewedRef = useRef<number[]>([]);
   const linksClickedRef = useRef<number[]>([]);
+  const clickPositionsRef = useRef<ClickPosition[]>([]);
+  const customEventsRef = useRef<string[]>([]);
 
   useEffect(() => {
     // Send initial view event
@@ -40,12 +48,30 @@ export default function AnalyticsTracker({ slug }: AnalyticsTrackerProps) {
 
     // Track link clicks
     const handleLinkClick = (e: MouseEvent) => {
+      // Capture click position
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      clickPositionsRef.current.push({
+        x: e.clientX / viewportWidth,
+        y: e.clientY / viewportHeight,
+        timestamp: Date.now(),
+      });
+
       const target = e.target as HTMLElement;
       const link = target.closest("a[data-link-id]");
       if (link) {
         const linkId = link.getAttribute("data-link-id");
         if (linkId && !linksClickedRef.current.includes(Number(linkId))) {
           linksClickedRef.current.push(Number(linkId));
+        }
+      }
+
+      // Check for custom conversion events
+      const conversionEvent = target.closest("[data-conversion-event]");
+      if (conversionEvent) {
+        const eventName = conversionEvent.getAttribute("data-conversion-event");
+        if (eventName && !customEventsRef.current.includes(eventName)) {
+          customEventsRef.current.push(eventName);
         }
       }
     };
@@ -84,6 +110,8 @@ export default function AnalyticsTracker({ slug }: AnalyticsTrackerProps) {
           timeOnPage,
           blocksViewed: blocksViewedRef.current.length > 0 ? blocksViewedRef.current : null,
           linksClicked: linksClickedRef.current.length > 0 ? linksClickedRef.current : null,
+          clickPositions: clickPositionsRef.current.length > 0 ? clickPositionsRef.current : null,
+          customEvents: customEventsRef.current.length > 0 ? customEventsRef.current : null,
         }),
         keepalive: true, // Ensures request completes even if page is closing
       });

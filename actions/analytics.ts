@@ -177,11 +177,11 @@ export async function getPageAnalytics(pageId: number, days = 30) {
       }, {} as Record<string, any>);
 
     const utmCampaignStats = Object.values(utmCampaigns).map((c: any) => ({
-      campaign: c.campaign,
-      views: c.views,
-      conversions: c.conversions,
+      campaign: c.campaign as string,
+      views: c.views as number,
+      conversions: c.conversions as number,
       conversionRate: c.views > 0 ? (c.conversions / c.views) * 100 : 0,
-      sources: Array.from(c.sources),
+      sources: Array.from(c.sources) as string[],
     }));
 
     return {
