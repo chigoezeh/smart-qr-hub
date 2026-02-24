@@ -14,6 +14,8 @@ export default async function LandingPagesPage() {
       id: landingPages.id,
       slug: landingPages.slug,
       type: landingPages.type,
+      template: landingPages.template,
+      category: landingPages.category,
       theme: landingPages.theme,
       fullName: landingPages.fullName,
       createdAt: landingPages.createdAt,
@@ -134,9 +136,10 @@ export default async function LandingPagesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {pagesWithCounts.map((page) => {
-              const TypeIcon = typeIcons[page.type as keyof typeof typeIcons];
-              const typeLabel = typeLabels[page.type as keyof typeof typeLabels];
-              const typeColor = typeColors[page.type as keyof typeof typeColors];
+              const templateKey = (page.template || page.type) as keyof typeof typeIcons;
+              const TypeIcon = typeIcons[templateKey] || Globe;
+              const typeLabel = typeLabels[templateKey] || (page.template || page.type);
+              const typeColor = typeColors[templateKey] || "bg-gray-100 text-gray-700 border-gray-200";
 
               return (
                 <div

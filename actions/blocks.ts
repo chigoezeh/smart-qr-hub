@@ -72,6 +72,7 @@ export async function updateBlock(blockId: number, updates: {
   isVisible?: boolean;
   backgroundColor?: string;
   textColor?: string;
+  customStyles?: any;
 }) {
   try {
     const { workspace } = await getCurrentWorkspace();
@@ -98,6 +99,10 @@ export async function updateBlock(blockId: number, updates: {
     const updateData: any = { updatedAt: new Date() };
     if (updates.title !== undefined) updateData.title = updates.title;
     if (updates.content !== undefined) updateData.content = updates.content as any;
+    if (updates.isVisible !== undefined) updateData.isVisible = updates.isVisible;
+    if (updates.backgroundColor !== undefined) updateData.backgroundColor = updates.backgroundColor;
+    if (updates.textColor !== undefined) updateData.textColor = updates.textColor;
+    if (updates.customStyles !== undefined) updateData.customStyles = updates.customStyles;
     if (updates.isVisible !== undefined) updateData.isVisible = updates.isVisible;
     if (updates.backgroundColor !== undefined) updateData.backgroundColor = updates.backgroundColor;
     if (updates.textColor !== undefined) updateData.textColor = updates.textColor;
