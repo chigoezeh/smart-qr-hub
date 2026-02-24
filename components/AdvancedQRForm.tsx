@@ -309,48 +309,29 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
   const activeRulesCount = schedules.length + languageRoutes.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </Link>
-            
-            {qrImage && (
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                  <Check className="w-4 h-4" />
-                  QR Code Ready
-                </div>
-              </div>
-            )}
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/20">
+            <Zap className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+              {editMode ? "Edit QR Code" : "Create Smart QR Code"}
+            </h1>
+            <p className="text-gray-600 mt-1 font-medium">
+              {editMode ? "Update your QR code settings and configuration" : "Auto-generated with real-time preview • Advanced routing & analytics"}
+            </p>
           </div>
         </div>
+        {qrImage && (
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+            <Check className="w-4 h-4" />
+            QR Code Ready
+          </div>
+        )}
       </div>
-
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/20">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-black text-gray-900 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
-                {editMode ? "Edit QR Code" : "Create Smart QR Code"}
-              </h1>
-              <p className="text-gray-600 mt-1 font-medium">
-                {editMode ? "Update your QR code settings and configuration" : "Auto-generated with real-time preview • Advanced routing & analytics"}
-              </p>
-            </div>
-          </div>
-        </div>
 
         <form onSubmit={handleSubmit}>
           {/* 2-Column Layout */}
@@ -796,7 +777,6 @@ export default function AdvancedQRForm({ editMode = false, existingData }: Advan
             </div>
           </div>
         </form>
-      </div>
     </div>
   );
 }

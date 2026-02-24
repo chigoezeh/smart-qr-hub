@@ -110,119 +110,107 @@ export default async function AnalyticsPage({ params, searchParams }: PageProps)
   const totalScans = scansData.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link 
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <QrCode className="w-8 h-8 text-blue-500" />
+            {qrCode.title || "Untitled QR Code"}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {qrCode.destinationUrl}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {/* Export CSV Button */}
+          <ExportCSVButton 
+            scans={scansData} 
+            qrCodeTitle={qrCode.title || "Untitled"} 
+            shortCode={qrCode.shortCode}
+          />
           
-          <div className="flex items-start justify-between">
+          {/* Date Range Selector */}
+          <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-1">
+            {["7", "30", "90", "365"].map((days) => (
+              <Link
+                key={days}
+                href={`/dashboard/analytics/${qrCodeId}?range=${days}`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  range === days
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {days === "365" ? "1 Year" : `${days} Days`}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <QrCode className="w-8 h-8 text-blue-500" />
-                {qrCode.title || "Untitled QR Code"}
-              </h1>
-              <p className="text-gray-600 mt-2">
-                {qrCode.destinationUrl}
+              <p className="text-sm text-gray-600 mb-1">Total Scans</p>
+              <p className="text-3xl font-bold text-gray-900">{totalScans}</p>
+            </div>
+            <Smartphone className="w-12 h-12 text-blue-500 opacity-20" />
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Unique Locations</p>
+              <p className="text-3xl font-bold text-gray-900">{locationCounts.size}</p>
+            </div>
+            <MapPin className="w-12 h-12 text-green-500 opacity-20" />
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Date Range</p>
+              <p className="text-lg font-bold text-gray-900">{range} Days</p>
+            </div>
+            <Calendar className="w-12 h-12 text-purple-500 opacity-20" />
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Avg. Daily Scans</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {daysBack > 0 ? Math.round(totalScans / daysBack) : 0}
               </p>
             </div>
-            
-            <div className="flex items-center gap-3">
-              {/* Export CSV Button */}
-              <ExportCSVButton 
-                scans={scansData} 
-                qrCodeTitle={qrCode.title || "Untitled"} 
-                shortCode={qrCode.shortCode}
-              />
-              
-              {/* Date Range Selector */}
-              <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-1">
-                {["7", "30", "90", "365"].map((days) => (
-                  <Link
-                    key={days}
-                    href={`/dashboard/analytics/${qrCodeId}?range=${days}`}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      range === days
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {days === "365" ? "1 Year" : `${days} Days`}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <QrCode className="w-12 h-12 text-orange-500 opacity-20" />
           </div>
         </div>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Scans</p>
-                <p className="text-3xl font-bold text-gray-900">{totalScans}</p>
-              </div>
-              <Smartphone className="w-12 h-12 text-blue-500 opacity-20" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Unique Locations</p>
-                <p className="text-3xl font-bold text-gray-900">{locationCounts.size}</p>
-              </div>
-              <MapPin className="w-12 h-12 text-green-500 opacity-20" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Date Range</p>
-                <p className="text-lg font-bold text-gray-900">{range} Days</p>
-              </div>
-              <Calendar className="w-12 h-12 text-purple-500 opacity-20" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Avg. Daily Scans</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {daysBack > 0 ? Math.round(totalScans / daysBack) : 0}
-                </p>
-              </div>
-              <QrCode className="w-12 h-12 text-orange-500 opacity-20" />
-            </div>
-          </div>
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-2">
+          <ScansOverTimeChart data={scansOverTimeData} />
         </div>
+        
+        <OSBreakdownChart data={osBreakdownData} />
+        
+        <DeviceTypeChart data={deviceTypeData} />
+      </div>
 
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <ScansOverTimeChart data={scansOverTimeData} />
-          </div>
-          
-          <OSBreakdownChart data={osBreakdownData} />
-          
-          <DeviceTypeChart data={deviceTypeData} />
-        </div>
-
-        {/* Locations and UTM Tracking */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <TopLocationsTable data={topLocationsData} totalScans={totalScans} />
-          
-          <UTMTracking scans={scansData} />
-        </div>
+      {/* Locations and UTM Tracking */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TopLocationsTable data={topLocationsData} totalScans={totalScans} />
+        
+        <UTMTracking scans={scansData} />
       </div>
     </div>
   );

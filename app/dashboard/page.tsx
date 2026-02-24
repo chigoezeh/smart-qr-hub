@@ -2,16 +2,15 @@ import { db } from "../../db";
 import { qrCodes, scans } from "../../db/schema";
 import { desc, eq, sql } from "drizzle-orm";
 import { getCurrentWorkspace } from "@/lib/workspace";
-import { UserButton } from "@clerk/nextjs";
 import StatCard from "@/components/StatCard";
 import TypeDistribution from "@/components/TypeDistribution";
 import RecentActivity from "@/components/RecentActivity";
-import { BarChart3, Plus, LayoutGrid, Sparkles, ArrowRight, Settings, Globe } from "lucide-react";
+import { Plus, LayoutGrid, ArrowRight, Settings } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
   // Get current user's workspace
-  const { workspace, role } = await getCurrentWorkspace();
+  const { workspace } = await getCurrentWorkspace();
 
   // Fetch all codes for this workspace
   const analyticsData = await db
@@ -74,59 +73,7 @@ export default async function DashboardPage() {
     .limit(10);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <BarChart3 className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-sm text-gray-600">
-                  {workspace.name} · <span className="capitalize">{workspace.plan}</span> · {role}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard/qr-codes"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all border border-gray-200"
-              >
-                <LayoutGrid className="w-4 h-4" />
-                <span className="hidden sm:inline">QR Codes</span>
-              </Link>
-              <Link
-                href="/dashboard/pages"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all border border-gray-200"
-              >
-                <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">Pages</span>
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all border border-gray-200"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Settings</span>
-              </Link>
-              <Link
-                href="/dashboard/create"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-105 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                <span className="hidden sm:inline">Create QR Code</span>
-                <span className="sm:hidden">Create</span>
-              </Link>
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="space-y-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           <StatCard title="Total QR Codes" value={totalQRCodes} icon="qr" color="blue" />
@@ -204,6 +151,5 @@ export default async function DashboardPage() {
           <RecentActivity scans={recentScans} />
         </div>
       </div>
-    </div>
   );
 }
