@@ -14,7 +14,9 @@ import {
   MapBlockContent,
   SocialBlockContent,
   DownloadBlockContent,
+  CalendarBlockContent,
 } from "@/types/landing-page";
+import { useState } from "react";
 
 // Block Renderer Props
 interface BlockRendererProps {
@@ -402,6 +404,221 @@ export function DownloadBlock({ block, isPreview }: BlockRendererProps) {
   );
 }
 
+// MENU BLOCK
+export function MenuBlock({ block, isPreview }: BlockRendererProps) {
+  const content = block.content as MenuBlockContent;
+
+  return (
+    <div className="block-menu space-y-6">
+      {content.categories?.map((category, idx) => (
+        <div key={idx} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <h3 className="text-2xl font-bold mb-4 text-gray-900">{category.name}</h3>
+          <div className="space-y-4">
+            {category.items?.map((item, itemIdx) => (
+              <div key={itemIdx} className="flex gap-4 pb-4 border-b border-gray-100 last:border-0">
+                {item.image && (
+                  <img 
+                    src={item.image} 
+                    alt={item.name}
+                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                    {item.price && (
+                      <span className="font-bold text-blue-600">${item.price}</span>
+                    )}
+                  </div>
+                  {item.description && (
+                    <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {item.dietary?.map((tag, tagIdx) => (
+                      <span 
+                        key={tagIdx}
+                        className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {item.allergens?.map((allergen, allergenIdx) => (
+                      <span 
+                        key={allergenIdx}
+                        className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full"
+                      >
+                        {allergen}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// FORM BLOCK
+export function FormBlock({ block, isPreview }: BlockRendererProps) {
+  const content = block.content as FormBlockContent;
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isPreview) {
+      alert("Form submission is disabled in preview mode");
+      return;
+    }
+
+    // TODO: Implement actual form submission
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+  };
+
+  if (submitted) {
+    return (
+      <div className="bg-green-50 border-2 border-green-500 rounded-xl p-8 text-center">
+        <p className="text-green-700 font-semibold">{content.successMessage || "Form submitted successfully!"}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="block-form">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 space-y-4">
+        {content.fields?.map((field, idx) => (
+          <div key={idx}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            
+            {field.type === "textarea" ? (
+              <textarea
+                required={field.required}
+                placeholder={field.placeholder}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+                value={formData[field.label] || ""}
+                onChange={(e) => setFormData({ ...formData, [field.label]: e.target.value })}
+              />
+            ) : field.type === "select" ? (
+              <select
+                required={field.required}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={formData[field.label] || ""}
+                onChange={(e) => setFormData({ ...formData, [field.label]: e.target.value })}
+              >
+                <option value="">Select...</option>
+                {field.options?.map((option, optIdx) => (
+                  <option key={optIdx} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : field.type === "checkbox" ? (
+              <div className="space-y-2">
+                {field.options?.map((option, optIdx) => (
+                  <label key={optIdx} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      checked={formData[field.label]?.[option] || false}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        [field.label]: {
+                          ...formData[field.label],
+                          [option]: e.target.checked
+                        }
+                      })}
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <input
+                type={field.type}
+                required={field.required}
+                placeholder={field.placeholder}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={formData[field.label] || ""}
+                onChange={(e) => setFormData({ ...formData, [field.label]: e.target.value })}
+              />
+            )}
+          </div>
+        ))}
+        
+        <button
+          type="submit"
+          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
+          {content.submitButtonText || "Submit"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// CALENDAR BLOCK
+export function CalendarBlock({ block, isPreview }: BlockRendererProps) {
+  const content = block.content as CalendarBlockContent;
+
+  if (content.view === "calendar") {
+    // TODO: Implement actual calendar grid view
+    return (
+      <div className="block-calendar bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <p className="text-center text-gray-600">Calendar grid view coming soon</p>
+      </div>
+    );
+  }
+
+  // List view
+  return (
+    <div className="block-calendar space-y-4">
+      {content.events?.map((event, idx) => (
+        <div key={idx} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <div className="flex gap-4">
+            <div className="flex-shrink-0 w-16 text-center border-r border-gray-200 pr-4">
+              <div className="text-2xl font-bold text-blue-600">
+                {new Date(event.date).getDate()}
+              </div>
+              <div className="text-xs text-gray-600 uppercase">
+                {new Date(event.date).toLocaleString('en-US', { month: 'short' })}
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{event.title}</h3>
+              {event.time && (
+                <p className="text-sm text-gray-600 mb-2">🕐 {event.time}</p>
+              )}
+              {event.location && (
+                <p className="text-sm text-gray-600 mb-2">📍 {event.location}</p>
+              )}
+              {event.description && (
+                <p className="text-gray-700 mb-3">{event.description}</p>
+              )}
+              {event.registrationUrl && (
+                <a 
+                  href={event.registrationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Register / RSVP
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // MAIN BLOCK RENDERER
 export default function BlockRenderer({ block, isPreview = false }: BlockRendererProps) {
   if (!block.isVisible && !isPreview) {
@@ -414,6 +631,9 @@ export default function BlockRenderer({ block, isPreview = false }: BlockRendere
     gallery: GalleryBlock,
     video: VideoBlock,
     social: SocialBlock,
+    menu: MenuBlock,
+    form: FormBlock,
+    calendar: CalendarBlock,
     testimonials: TestimonialsBlock,
     pricing: PricingBlock,
     faq: FAQBlock,

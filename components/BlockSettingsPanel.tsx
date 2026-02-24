@@ -14,11 +14,18 @@ import {
   MapBlockContent,
   SocialBlockContent,
   DownloadBlockContent,
+  CalendarBlockContent,
 } from "@/types/landing-page";
 import { X, Save, Palette, Type, Image as ImageIcon, Link, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { updateBlock } from "@/actions/blocks";
 import { toast } from "sonner";
+import MenuEditor from "@/components/editors/MenuEditor";
+import FormBuilder from "@/components/editors/FormBuilder";
+import TestimonialsManager from "@/components/editors/TestimonialsManager";
+import PricingBuilder from "@/components/editors/PricingBuilder";
+import FAQEditor from "@/components/editors/FAQEditor";
+import CalendarEditor from "@/components/editors/CalendarEditor";
 
 interface BlockSettingsPanelProps {
   block: LandingPageBlock | null;
@@ -365,11 +372,58 @@ export default function BlockSettingsPanel({ block, onClose, onUpdate }: BlockSe
           </div>
         );
 
+      case "menu":
+        return (
+          <MenuEditor
+            content={formData.content as MenuBlockContent}
+            onChange={(newContent) => setFormData({ ...formData, content: newContent })}
+          />
+        );
+
+      case "form":
+        return (
+          <FormBuilder
+            content={formData.content as FormBlockContent}
+            onChange={(newContent) => setFormData({ ...formData, content: newContent })}
+          />
+        );
+
+      case "calendar":
+        return (
+          <CalendarEditor
+            content={formData.content as CalendarBlockContent}
+            onChange={(newContent) => setFormData({ ...formData, content: newContent })}
+          />
+        );
+
+      case "testimonials":
+        return (
+          <TestimonialsManager
+            content={formData.content as TestimonialBlockContent}
+            onChange={(newContent) => setFormData({ ...formData, content: newContent })}
+          />
+        );
+
+      case "pricing":
+        return (
+          <PricingBuilder
+            content={formData.content as PricingBlockContent}
+            onChange={(newContent) => setFormData({ ...formData, content: newContent })}
+          />
+        );
+
+      case "faq":
+        return (
+          <FAQEditor
+            content={formData.content as FAQBlockContent}
+            onChange={(newContent) => setFormData({ ...formData, content: newContent })}
+          />
+        );
+
       default:
         return (
           <div className="text-center py-8 text-gray-500">
             <p>Content editor for <strong>{block.blockType}</strong> blocks coming soon.</p>
-            <p className="text-sm mt-2">Advanced editors will be available in Phase 3.</p>
           </div>
         );
     }
