@@ -26,7 +26,7 @@ export default async function DashboardLayout({
       <div className="flex h-[calc(100vh-4rem)]">
         <DashboardNav />
         
-        <main className="flex-1 lg:ml-64 overflow-auto">
+        <main className="flex-1 lg:ml-72 overflow-auto">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {/* Breadcrumbs */}
             <div className="mb-6">
