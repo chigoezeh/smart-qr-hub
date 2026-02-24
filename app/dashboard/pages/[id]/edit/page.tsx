@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { landingPages, landingPageBlocks, workspaceMembers } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
@@ -10,8 +10,8 @@ import QRQuickCreate from "@/components/QRQuickCreate";
 import { LandingPageBlock } from "@/types/landing-page";
 
 export default async function EditLandingPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await currentUser();
-  if (!user) redirect("/sign-in");
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
 
   const { id } = await params;
   const pageId = parseInt(id);
@@ -19,7 +19,7 @@ export default async function EditLandingPage({ params }: { params: Promise<{ id
 
   // Get user's workspace
   const membership = await db.query.workspaceMembers.findFirst({
-    where: eq(workspaceMembers.userId, user.id),
+    where: eq(workspaceMembers.userId, userId),
   });
 
   if (!membership) redirect("/onboarding");
