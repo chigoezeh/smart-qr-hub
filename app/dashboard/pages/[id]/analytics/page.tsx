@@ -7,6 +7,7 @@ import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AnalyticsDashboard from "@/components/analytics/AnalyticsDashboard";
+import UnifiedAnalytics from "@/components/UnifiedAnalytics";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default async function PageAnalyticsPage({
@@ -91,7 +92,11 @@ export default async function PageAnalyticsPage({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* Unified Analytics - QR + Page Views */}
+        <UnifiedAnalytics pageId={pageId} pageSlug={page.slug} />
+        
+        {/* Detailed Page Analytics */}
         <AnalyticsDashboard
           pageId={pageId}
           pageTitle={page.headerTitle || page.slug}

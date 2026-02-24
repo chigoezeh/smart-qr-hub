@@ -2,6 +2,7 @@
 
 import { QRContentType } from "@/types/qr-content";
 import { Globe, FileText, User, Mail, MessageSquare, Phone, Wifi, Calendar, MapPin, MessageCircle, Share2, Coins, Info } from "lucide-react";
+import LandingPageSelector from "./LandingPageSelector";
 
 interface QRContentFormsProps {
   contentType: QRContentType;
@@ -24,6 +25,8 @@ export default function QRContentForms({ contentType, contentData, onChange }: Q
   switch (contentType) {
     case "url":
       return <URLForm data={contentData} onChange={onChange} />;
+    case "landing_page":
+      return <LandingPageForm data={contentData} onChange={onChange} />;
     case "text":
       return <TextForm data={contentData} updateField={updateField} />;
     case "vcard":
@@ -68,6 +71,42 @@ function URLForm({ data, onChange }: any) {
           placeholder="https://example.com"
           required
         />
+      </FormField>
+    </div>
+  );
+}
+
+// Landing Page Form
+function LandingPageForm({ data, onChange }: any) {
+  return (
+    <div className="space-y-4">
+      <div className="mb-4">
+        <label className="block text-sm font-semibold text-gray-700 mb-3">
+          Select Landing Page <span className="text-red-500">*</span>
+        </label>
+        <LandingPageSelector
+          selectedPageId={data.landingPageId}
+          onSelectPage={(pageId, slug) => {
+            onChange({ ...data, landingPageId: pageId, slug });
+          }}
+        />
+      </div>
+      
+      <FormField
+        label="UTM Parameters (Optional)"
+        icon={Info}
+        required={false}
+      >
+        <input
+          type="text"
+          value={data.utm || ""}
+          onChange={(e) => onChange({ ...data, utm: e.target.value })}
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium font-mono text-sm"
+          placeholder="utm_source=qr&utm_medium=print&utm_campaign=summer"
+        />
+        <p className="text-xs text-gray-500 mt-2">
+          Add UTM parameters to track this QR code in analytics (without the ? prefix)
+        </p>
       </FormField>
     </div>
   );

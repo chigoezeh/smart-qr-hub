@@ -2,6 +2,7 @@
 
 export type QRContentType =
   | "url"
+  | "landing_page"
   | "text"
   | "vcard"
   | "email"
@@ -22,6 +23,12 @@ export interface URLContent {
   androidUrl?: string;
   schedules?: any[];
   languageRoutes?: Record<string, string>;
+}
+
+export interface LandingPageContent {
+  landingPageId: number;
+  slug: string;
+  utm?: string;
 }
 
 export interface TextContent {
@@ -103,6 +110,7 @@ export interface CryptoContent {
 
 export type QRContentData =
   | URLContent
+  | LandingPageContent
   | TextContent
   | VCardContent
   | EmailContent
@@ -133,6 +141,14 @@ export const QR_TYPE_METADATA: Record<QRContentType, QRTypeMetadata> = {
     icon: "Link",
     color: "blue",
     supportsSmartRouting: true,
+  },
+  landing_page: {
+    type: "landing_page",
+    label: "Landing Page",
+    description: "Link to your custom landing page",
+    icon: "FileText",
+    color: "indigo",
+    supportsSmartRouting: false,
   },
   text: {
     type: "text",

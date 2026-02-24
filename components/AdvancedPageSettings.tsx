@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Settings2, Mail, Palette, Search, TestTube } from "lucide-react";
+import { Settings2, Mail, Palette, Search, TestTube, QrCode } from "lucide-react";
 import FontPicker from "./FontPicker";
 import AdvancedCSSEditorV2 from "./AdvancedCSSEditorV2";
 import SEOOptimizer from "./SEOOptimizer";
 import ABTestingManager from "./ABTestingManager";
 import LeadNotificationsConfig from "./LeadNotificationsConfig";
+import BulkQRGenerator from "./BulkQRGenerator";
 
 interface AdvancedPageSettingsProps {
   pageId: number;
   pageSlug: string;
 }
 
-type Tab = "typography" | "seo" | "notifications" | "abtesting" | "advanced_css";
+type Tab = "typography" | "seo" | "notifications" | "abtesting" | "advanced_css" | "qr_codes";
 
 export default function AdvancedPageSettings({ pageId, pageSlug }: AdvancedPageSettingsProps) {
   const [activeTab, setActiveTab] = useState<Tab>("typography");
@@ -24,6 +25,7 @@ export default function AdvancedPageSettings({ pageId, pageSlug }: AdvancedPageS
     { id: "seo" as Tab, label: "SEO & Meta", icon: Search },
     { id: "notifications" as Tab, label: "Lead Notifications", icon: Mail },
     { id: "abtesting" as Tab, label: "A/B Testing", icon: TestTube },
+    { id: "qr_codes" as Tab, label: "QR Codes", icon: QrCode },
     { id: "advanced_css" as Tab, label: "Advanced CSS", icon: Settings2 },
   ];
 
@@ -127,6 +129,17 @@ export default function AdvancedPageSettings({ pageId, pageSlug }: AdvancedPageS
             </p>
             
             <ABTestingManager pageId={pageId} pageSlug={pageSlug} />
+          </div>
+        )}
+
+        {activeTab === "qr_codes" && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Generate QR Codes</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Create multiple QR codes for this landing page with different UTM tracking parameters
+            </p>
+            
+            <BulkQRGenerator pageId={pageId} pageSlug={pageSlug} />
           </div>
         )}
 

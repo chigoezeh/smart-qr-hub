@@ -209,10 +209,9 @@ export async function GET(
       return new NextResponse("This QR code has reached its maximum scan limit", { status: 429 });
     }
 
-    // For non-URL types, this endpoint shouldn't be called
+    // For non-URL and non-landing-page types, this endpoint shouldn't be called
     // (QR codes encode content directly)
-    // But if it is, redirect to an info page or return 400
-    if (qrRecord.contentType && qrRecord.contentType !== "url") {
+    if (qrRecord.contentType && qrRecord.contentType !== "url" && qrRecord.contentType !== "landing_page") {
       return new NextResponse(
         "This QR code contains static content (vCard, WiFi, etc.) and does not use redirects.",
         { status: 400 }
@@ -247,7 +246,21 @@ export async function GET(
 
     // Get base URL from contentData or legacy destinationUrl
     let targetUrl = qrRecord.url; // Legacy field
-    if (qrRecord.contentData && typeof qrRecord.contentData === "object") {
+    
+    // Handle landing page content type
+    if (qrRecord.contentType === "landing_page" && qrRecord.contentData && typeof qrRecord.contentData === "object") {
+      const data = qrRecord.contentData as any;
+      if (data.slug) {
+        // Construct landing page URL
+        targetUrl = `${env.NEXT_PUBLIC_APP_URL}/l/${data.slug}`;
+        
+        // Append UTM parameters if present
+        if (data.utm) {
+          const utmStr = data.utm.startsWith("?") ? data.utm : `?${data.utm}`;
+          targetUrl += utmStr;
+        }
+      }
+    } else if (qrRecord.contentData && typeof qrRecord.contentData === "object") {
       const data = qrRecord.contentData as any;
       if (data.url) {
         targetUrl = data.url;

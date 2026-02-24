@@ -4,6 +4,7 @@
 import type {
   QRContentType,
   URLContent,
+  LandingPageContent,
   TextContent,
   VCardContent,
   EmailContent,
@@ -16,6 +17,7 @@ import type {
   SocialContent,
   CryptoContent,
 } from "@/types/qr-content";
+import { env } from "@/lib/env";
 
 /**
  * Encodes content data into QR-scannable format
@@ -27,6 +29,8 @@ export function encodeQRContent(
   switch (contentType) {
     case "url":
       return encodeURL(contentData);
+    case "landing_page":
+      return encodeLandingPage(contentData);
     case "text":
       return encodeText(contentData);
     case "vcard":
@@ -56,6 +60,20 @@ export function encodeQRContent(
 
 function encodeURL(data: URLContent): string {
   return data.url;
+}
+
+function encodeLandingPage(data: LandingPageContent): string {
+  // This will be handled via redirect - return the short code URL
+  // The actual redirect logic is in app/q/[shortCode]/route.ts
+  // For now, just return a placeholder that won't be used directly
+  let baseUrl = `${env.NEXT_PUBLIC_APP_URL}/l/${data.slug}`;
+  
+  if (data.utm) {
+    const utmStr = data.utm.startsWith("?") ? data.utm : `?${data.utm}`;
+    baseUrl += utmStr;
+  }
+  
+  return baseUrl;
 }
 
 function encodeText(data: TextContent): string {
@@ -243,6 +261,15 @@ export function validateQRContent(
         } catch {
           errors.push("Invalid URL format");
         }
+      }
+      break;
+
+    case "landing_page":
+      if (!contentData.landingPageId) {
+        errors.push("Landing page selection is required");
+      }
+      if (!contentData.slug) {
+        errors.push("Landing page slug is required");
       }
       break;
 

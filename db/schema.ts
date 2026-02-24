@@ -47,7 +47,7 @@ export const qrCodes = pgTable("qr_codes", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   
   // QR Content Type System
-  contentType: text("content_type").notNull().default("url"), // url, text, vcard, email, sms, phone, wifi, event, location, whatsapp, social, crypto
+  contentType: text("content_type").notNull().default("url"), // url, text, vcard, email, sms, phone, wifi, event, location, whatsapp, social, crypto, landing_page
   contentData: jsonb("content_data"), // Flexible storage for type-specific data
   
   // OS-specific routing
