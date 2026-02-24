@@ -9,6 +9,8 @@ import { revalidatePath } from "next/cache";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { QRContentType } from "@/types/qr-content";
 import { encodeQRContent } from "@/lib/qr-encoder";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export async function createSmartLink(formData: FormData) {
   // Get current user's workspace
@@ -48,7 +50,7 @@ export async function createSmartLink(formData: FormData) {
       contentData = { url: destinationUrl };
     }
   } catch (e) {
-    console.error("Invalid content data JSON:", e);
+    logger.error("Invalid content data JSON", e, { destinationUrl, contentType });
     throw new Error("Invalid content data format");
   }
 
@@ -64,7 +66,7 @@ export async function createSmartLink(formData: FormData) {
       schedules = JSON.parse(schedulesJson);
     }
   } catch (e) {
-    console.error("Invalid schedules JSON:", e);
+    logger.warn("Invalid schedules JSON", { error: e, schedulesJson });
   }
 
   try {
@@ -72,7 +74,7 @@ export async function createSmartLink(formData: FormData) {
       languageRoutes = JSON.parse(languageRoutesJson);
     }
   } catch (e) {
-    console.error("Invalid language routes JSON:", e);
+    logger.warn("Invalid language routes JSON", { error: e, languageRoutesJson });
   }
   
   // Parse security settings
@@ -97,7 +99,7 @@ export async function createSmartLink(formData: FormData) {
       geofence = JSON.parse(geofenceJson);
     }
   } catch (e) {
-    console.error("Invalid geofence JSON:", e);
+    logger.warn("Invalid geofence JSON", { error: e, geofenceJson });
   }
 
   const shortCode = crypto.randomBytes(3).toString("hex");
@@ -128,7 +130,7 @@ export async function createSmartLink(formData: FormData) {
   // For URL types with smart routing, use our redirect URL
   // For static types (vcard, wifi, etc.), encode content directly
   const qrEncodedContent = contentType === "url" && (schedules || languageRoutes || iosUrl || androidUrl)
-    ? `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/q/${shortCode}`
+    ? `${env.NEXT_PUBLIC_APP_URL}/q/${shortCode}`
     : qrContent;
 
   const qrImageBase64 = await QRCode.toDataURL(qrEncodedContent, {

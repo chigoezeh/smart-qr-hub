@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { db } from "../../../db";
 import { qrCodes, scans } from "../../../db/schema";
 import { eq, sql } from "drizzle-orm";
+import { env } from "@/lib/env";
+import { validateQRToken } from "@/actions/qr-security";
+import { logger } from "@/lib/logger";
 
 // Helper: Get client IP address
 function getClientIp(request: Request): string {
@@ -184,14 +187,21 @@ export async function GET(
       const url = new URL(request.url);
       const token = url.searchParams.get("token");
       
-      // In production, validate token against database/cache
-      // For now, we'll accept any token from the verification page
       if (!token) {
         // Redirect to password verification page
-        const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/verify/${shortCode}`;
+        const verifyUrl = `${env.NEXT_PUBLIC_APP_URL}/verify/${shortCode}`;
         return NextResponse.redirect(verifyUrl, 302);
       }
-      // Token exists, proceed with access
+
+      // Validate JWT token
+      const isValidToken = await validateQRToken(token, shortCode);
+      if (!isValidToken) {
+        logger.warn("Invalid or expired token for password-protected QR code", { shortCode });
+        const verifyUrl = `${env.NEXT_PUBLIC_APP_URL}/verify/${shortCode}?error=expired`;
+        return NextResponse.redirect(verifyUrl, 302);
+      }
+      
+      // Token is valid, proceed with access
     }
     
     // 5. Scan Limit Check
@@ -282,7 +292,7 @@ export async function GET(
     
     if (hasPixels) {
       // Redirect to pixel page for tracking, which will then redirect to target
-      const pixelPageUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/pixel/${shortCode}?target=${encodeURIComponent(targetUrl)}`;
+      const pixelPageUrl = `${env.NEXT_PUBLIC_APP_URL}/pixel/${shortCode}?target=${encodeURIComponent(targetUrl)}`;
       return NextResponse.redirect(pixelPageUrl, 302);
     }
 

@@ -7,6 +7,8 @@ import { auth } from "@clerk/nextjs/server";
 import { db as database } from "@/db";
 import { workspaceMembers } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -48,7 +50,7 @@ export async function POST(request: Request) {
     });
 
     // 3. Create the routing URL using environment variable
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = env.NEXT_PUBLIC_APP_URL;
     const routingUrl = `${baseUrl}/q/${shortCode}`;
 
     // 4. Generate the QR Code image as a Base64 data string
@@ -69,7 +71,7 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    console.error("QR Generation Error:", error);
+    logger.error("QR Generation Error", error);
     return NextResponse.json({ error: "Failed to generate QR code" }, { status: 500 });
   }
 }

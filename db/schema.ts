@@ -13,7 +13,7 @@ export const workspaces = pgTable("workspaces", {
 // TABLE 2: Workspace Members (User roles and permissions)
 export const workspaceMembers = pgTable("workspace_members", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
   userId: text("user_id").notNull(), // Clerk user ID
   role: text("role").notNull().default("member"), // owner, admin, member, viewer
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
@@ -25,7 +25,7 @@ export const workspaceMembers = pgTable("workspace_members", {
 // TABLE 3: API Keys (Developer access)
 export const apiKeys = pgTable("api_keys", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
   keyHash: text("key_hash").notNull().unique(), // SHA-256 hash of the key
   name: text("name").notNull(), // User-friendly name
   lastUsedAt: timestamp("last_used_at"),
@@ -38,7 +38,7 @@ export const apiKeys = pgTable("api_keys", {
 // TABLE 4: The QR Codes (The "Smart Links")
 export const qrCodes = pgTable("qr_codes", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
   shortCode: text("short_code").notNull().unique(), 
   destinationUrl: text("destination_url"), // Nullable for backward compatibility
   title: text("title"), 
@@ -90,7 +90,7 @@ export const qrCodes = pgTable("qr_codes", {
 // TABLE 5: The Analytics (The "Tracker")
 export const scans = pgTable("scans", {
   id: serial("id").primaryKey(),
-  qrCodeId: integer("qr_code_id").references(() => qrCodes.id).notNull(), 
+  qrCodeId: integer("qr_code_id").references(() => qrCodes.id, { onDelete: "cascade" }).notNull(),
   scannedAt: timestamp("scanned_at").defaultNow().notNull(),
   
   // Device & OS Detection
@@ -116,7 +116,7 @@ export const scans = pgTable("scans", {
 // TABLE 6: Landing Pages (Micro-landing page builder)
 export const landingPages = pgTable("landing_pages", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
   slug: text("slug").notNull().unique(),
   type: text("type").notNull().default("biolink"), // biolink, vcard, custom
   theme: text("theme").notNull().default("default"),
@@ -138,7 +138,7 @@ export const landingPages = pgTable("landing_pages", {
 // TABLE 7: Landing Page Links (Bio-link content)
 export const landingPageLinks = pgTable("landing_page_links", {
   id: serial("id").primaryKey(),
-  landingPageId: integer("landing_page_id").references(() => landingPages.id).notNull(),
+  landingPageId: integer("landing_page_id").references(() => landingPages.id, { onDelete: "cascade" }).notNull(),
   title: text("title").notNull(),
   url: text("url").notNull(),
   icon: text("icon"), // Icon name or emoji
@@ -151,7 +151,7 @@ export const landingPageLinks = pgTable("landing_page_links", {
 // TABLE 8: Landing Page Clicks (Click tracking for bio-links)
 export const landingPageClicks = pgTable("landing_page_clicks", {
   id: serial("id").primaryKey(),
-  landingPageLinkId: integer("landing_page_link_id").references(() => landingPageLinks.id).notNull(),
+  landingPageLinkId: integer("landing_page_link_id").references(() => landingPageLinks.id, { onDelete: "cascade" }).notNull(),
   clickedAt: timestamp("clicked_at").defaultNow().notNull(),
   userAgent: text("user_agent"),
   country: text("country"),
@@ -163,7 +163,7 @@ export const landingPageClicks = pgTable("landing_page_clicks", {
 // TABLE 9: Webhooks (Developer integrations)
 export const webhooks = pgTable("webhooks", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
   url: text("url").notNull(),
   events: jsonb("events").notNull(), // Array of event types like ["qr.scanned", "qr.created"]
   secret: text("secret").notNull(), // For HMAC signing
@@ -178,7 +178,7 @@ export const webhooks = pgTable("webhooks", {
 // TABLE 10: QR Code Version History (Track destination URL changes)
 export const qrCodeVersions = pgTable("qr_code_versions", {
   id: serial("id").primaryKey(),
-  qrCodeId: integer("qr_code_id").references(() => qrCodes.id).notNull(),
+  qrCodeId: integer("qr_code_id").references(() => qrCodes.id, { onDelete: "cascade" }).notNull(),
   destinationUrl: text("destination_url").notNull(),
   changedBy: text("changed_by").notNull(), // Clerk user ID
   changedAt: timestamp("changed_at").defaultNow().notNull(),
