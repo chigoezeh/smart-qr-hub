@@ -5,11 +5,12 @@ import { db } from "@/db";
 import { landingPages, workspaceMembers } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import Link from "next/link";
-import { ArrowLeft, Download, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import AnalyticsSummary from "@/components/analytics/AnalyticsSummary";
 import ViewsOverTimeChart from "@/components/analytics/ViewsOverTimeChart";
 import DeviceBreakdownChart from "@/components/analytics/DeviceBreakdownChart";
 import TopCountriesChart from "@/components/analytics/TopCountriesChart";
+import ExportLandingPageCSV from "@/components/analytics/ExportLandingPageCSV";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default async function PageAnalyticsPage({
@@ -90,10 +91,11 @@ export default async function PageAnalyticsPage({
                 <ArrowLeft className="w-4 h-4" />
                 Back to Editor
               </Link>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export Data
-              </button>
+              <ExportLandingPageCSV
+                data={data}
+                pageTitle={page.headerTitle || page.slug}
+                slug={page.slug}
+              />
             </div>
           </div>
 
