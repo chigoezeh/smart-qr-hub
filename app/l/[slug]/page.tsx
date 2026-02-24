@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Link2, Mail, Phone, MapPin, Building2, Download } from "lucide-react";
 import TrackedLink from "@/components/TrackedLink";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 import { LandingPageBlock } from "@/types/landing-page";
 
 interface PageProps {
@@ -107,15 +108,19 @@ export default async function PublicLandingPage({ params }: PageProps) {
 
   return (
     <div className={`landing-container min-h-screen ${currentTheme.container} py-12 px-4 sm:px-6 lg:px-8`}>
+      {/* Analytics Tracker */}
+      <AnalyticsTracker slug={slug} />
+      
       <div className="max-w-2xl mx-auto">
         {/* Render modern block-based layout */}
         {blocks.length > 0 ? (
           <div className="space-y-6">
             {blocks.map((block) => (
-              <BlockRenderer
-                key={block.id}
-                block={block as LandingPageBlock}
-              />
+              <div key={block.id} data-block-id={block.id}>
+                <BlockRenderer
+                  block={block as LandingPageBlock}
+                />
+              </div>
             ))}
           </div>
         ) : (
