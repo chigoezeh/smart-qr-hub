@@ -6,6 +6,7 @@ import { eq, and, asc } from "drizzle-orm";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
 import PageEditor from "@/components/PageEditor";
+import QRQuickCreate from "@/components/QRQuickCreate";
 import { LandingPageBlock } from "@/types/landing-page";
 
 export default async function EditLandingPage({ params }: { params: Promise<{ id: string }> }) {
@@ -64,14 +65,21 @@ export default async function EditLandingPage({ params }: { params: Promise<{ id
                 </p>
               </div>
             </div>
-            <Link
-              href={`/l/${page.slug}`}
-              target="_blank"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/30"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View Live
-            </Link>
+            <div className="flex items-center gap-3">
+              <QRQuickCreate 
+                pageSlug={page.slug}
+                pageTitle={page.headerTitle || page.slug}
+                pageId={pageId}
+              />
+              <Link
+                href={`/l/${page.slug}`}
+                target="_blank"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/30"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View Live
+              </Link>
+            </div>
           </div>
         </div>
       </div>
