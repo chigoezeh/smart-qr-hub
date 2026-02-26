@@ -22,39 +22,26 @@ export default function QRQuickCreate({ pageSlug, pageTitle, pageId }: QRQuickCr
   const handleCreateQR = async () => {
     setIsCreating(true);
     try {
-      // Create QR code via API
-      const response = await fetch("/api/v1/qr", {
+      // Create QR code via API (using session auth endpoint)
+      const response = await fetch("/api/qr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: `QR for ${pageTitle}`,
-          contentType: "landing_page",
-          contentData: {
-            landingPageId: pageId,
-            slug: pageSlug,
-          },
           destinationUrl: landingPageUrl,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create QR code");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create QR code");
       }
 
       const data = await response.json();
       setShortCode(data.shortCode);
 
-      // Generate QR code image
-      const qrUrl = await QRCode.toDataURL(landingPageUrl, {
-        width: 512,
-        margin: 2,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-      });
-
-      setQrCodeUrl(qrUrl);
+      // Use the QR image from the API response
+      setQrCodeUrl(data.qrImage);
       setShowModal(true);
     } catch (error) {
       console.error("Failed to create QR code:", error);
