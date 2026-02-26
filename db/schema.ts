@@ -47,7 +47,7 @@ export const qrCodes = pgTable("qr_codes", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   
   // QR Content Type System
-  contentType: text("content_type").notNull().default("url"), // url, text, vcard, email, sms, phone, wifi, event, location, whatsapp, social, crypto
+  contentType: text("content_type").notNull().default("url"), // url, text, vcard, email, sms, phone, wifi, event, location, whatsapp, social, crypto, landing_page
   contentData: jsonb("content_data"), // Flexible storage for type-specific data
   
   // OS-specific routing
@@ -82,6 +82,9 @@ export const qrCodes = pgTable("qr_codes", {
   // Barcode Support (Phase 7)
   type: text("type").notNull().default("qr"), // qr, barcode
   barcodeFormat: text("barcode_format"), // UPC, EAN, Code128, etc.
+  
+  // Landing Page Integration (Phase 8)
+  landingPageId: integer("landing_page_id"), // References landing_pages.id (added after landing_pages table creation)
 }, (table) => ({
   workspaceIdCreatedAtIdx: index("qr_codes_workspace_id_created_at_idx").on(table.workspaceId, table.createdAt),
   shortCodeIdx: index("qr_codes_short_code_idx").on(table.shortCode),
@@ -113,42 +116,182 @@ export const scans = pgTable("scans", {
   qrCodeIdScannedAtIdx: index("scans_qr_code_id_scanned_at_idx").on(table.qrCodeId, table.scannedAt),
 }));
 
-// TABLE 6: Landing Pages (Micro-landing page builder)
+// TABLE 6: Landing Pages (Universal Smart Landing Platform)
 export const landingPages = pgTable("landing_pages", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
   slug: text("slug").notNull().unique(),
-  type: text("type").notNull().default("biolink"), // biolink, vcard, custom
+  
+  // Template System
+  category: text("category").notNull().default("general"), // general, restaurant, realestate, portfolio, retail, healthcare, events, education, fitness, hospitality, professional, creative, nonprofit
+  template: text("template").notNull().default("biolink"), // biolink, vcard, menu, property, resume, product, clinic, event, course, trainer, travel, service, gallery, donation
+  type: text("type").notNull().default("biolink"), // Legacy field - kept for backward compatibility
+  
+  // Theme & Styling
   theme: text("theme").notNull().default("default"),
   customCss: text("custom_css"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  colorPrimary: text("color_primary").default("#3B82F6"),
+  colorSecondary: text("color_secondary").default("#8B5CF6"),
+  fontFamily: text("font_family").default("Inter"),
   
-  // vCard specific fields
+  // SEO & Metadata
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  metaImage: text("meta_image"),
+  
+  // Header Customization
+  headerType: text("header_type").default("minimal"), // minimal, hero, banner, video
+  headerMediaUrl: text("header_media_url"),
+  headerTitle: text("header_title"),
+  headerSubtitle: text("header_subtitle"),
+  logoUrl: text("logo_url"),
+  
+  // Industry-Specific Data (JSONB for flexibility)
+  businessInfo: jsonb("business_info"), // {name, tagline, description, industry, etc.}
+  contactInfo: jsonb("contact_info"), // {email, phone, address, socialLinks, etc.}
+  settingsData: jsonb("settings_data"), // Template-specific settings
+  
+  // Legacy vCard fields (backward compatibility)
   fullName: text("full_name"),
   phone: text("phone"),
   email: text("email"),
   company: text("company"),
   address: text("address"),
   profilePhotoUrl: text("profile_photo_url"),
+  
+  // Features & Integrations
+  enableAnalytics: boolean("enable_analytics").default(true).notNull(),
+  enableLeadCapture: boolean("enable_lead_capture").default(false).notNull(),
+  enableAppointments: boolean("enable_appointments").default(false).notNull(),
+  enablePayments: boolean("enable_payments").default(false).notNull(),
+  
+  // Visibility & Access
+  isPublished: boolean("is_published").default(true).notNull(),
+  requiresPassword: boolean("requires_password").default(false).notNull(),
+  passwordHash: text("password_hash"),
+  
+  // Lead Notification Configuration
+  notificationConfig: jsonb("notification_config"), // {notifications: [...], webhookUrl, apiKey, emailService}
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  publishedAt: timestamp("published_at"),
 }, (table) => ({
   workspaceIdIdx: index("landing_pages_workspace_id_idx").on(table.workspaceId),
+  categoryIdx: index("landing_pages_category_idx").on(table.category),
+  templateIdx: index("landing_pages_template_idx").on(table.template),
 }));
 
-// TABLE 7: Landing Page Links (Bio-link content)
+// TABLE 7: Landing Page Links (Enhanced Bio-link content)
 export const landingPageLinks = pgTable("landing_page_links", {
   id: serial("id").primaryKey(),
   landingPageId: integer("landing_page_id").references(() => landingPages.id, { onDelete: "cascade" }).notNull(),
   title: text("title").notNull(),
   url: text("url").notNull(),
   icon: text("icon"), // Icon name or emoji
+  
+  // Link Enhancements
+  description: text("description"),
+  thumbnailUrl: text("thumbnail_url"),
+  linkType: text("link_type").default("standard"), // standard, featured, button, social, download
+  
+  // Click Tracking
+  clickCount: integer("click_count").default(0).notNull(),
+  lastClickedAt: timestamp("last_clicked_at"),
+  
   displayOrder: integer("display_order").notNull().default(0),
+  isVisible: boolean("is_visible").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   landingPageIdIdx: index("landing_page_links_landing_page_id_idx").on(table.landingPageId),
 }));
 
-// TABLE 8: Landing Page Clicks (Click tracking for bio-links)
+// TABLE 8: Landing Page Blocks (Modular Content System)
+export const landingPageBlocks = pgTable("landing_page_blocks", {
+  id: serial("id").primaryKey(),
+  landingPageId: integer("landing_page_id").references(() => landingPages.id, { onDelete: "cascade" }).notNull(),
+  
+  blockType: text("block_type").notNull(), // text, image, video, gallery, links, form, calendar, map, menu, testimonials, pricing, faq, social, download, custom
+  
+  title: text("title"),
+  content: jsonb("content").notNull(), // Flexible content data specific to block type
+  
+  displayOrder: integer("display_order").notNull().default(0),
+  isVisible: boolean("is_visible").default(true).notNull(),
+  
+  // Styling per block
+  backgroundColor: text("background_color"),
+  textColor: text("text_color"),
+  customStyles: jsonb("custom_styles"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  landingPageIdIdx: index("landing_page_blocks_landing_page_id_idx").on(table.landingPageId),
+  blockTypeIdx: index("landing_page_blocks_block_type_idx").on(table.blockType),
+}));
+
+// TABLE 9: Landing Page Leads (Lead Capture System)
+export const landingPageLeads = pgTable("landing_page_leads", {
+  id: serial("id").primaryKey(),
+  landingPageId: integer("landing_page_id").references(() => landingPages.id, { onDelete: "cascade" }).notNull(),
+  
+  name: text("name"),
+  email: text("email"),
+  phone: text("phone"),
+  message: text("message"),
+  
+  // Custom form fields
+  customData: jsonb("custom_data"),
+  
+  // Tracking
+  sourceUrl: text("source_url"),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  
+  status: text("status").default("new").notNull(), // new, contacted, converted, archived
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  landingPageIdIdx: index("landing_page_leads_landing_page_id_idx").on(table.landingPageId),
+  emailIdx: index("landing_page_leads_email_idx").on(table.email),
+  statusIdx: index("landing_page_leads_status_idx").on(table.status),
+}));
+
+// TABLE 10: Landing Page Views (Analytics System)
+export const landingPageViews = pgTable("landing_page_views", {
+  id: serial("id").primaryKey(),
+  landingPageId: integer("landing_page_id").references(() => landingPages.id, { onDelete: "cascade" }).notNull(),
+  
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+  
+  // Device & Location
+  os: text("os"),
+  deviceType: text("device_type"),
+  country: text("country"),
+  city: text("city"),
+  
+  // Source Tracking
+  referrer: text("referrer"),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  
+  // Engagement
+  timeOnPage: integer("time_on_page"), // seconds
+  blocksViewed: jsonb("blocks_viewed"), // Array of block IDs
+  linksClicked: jsonb("links_clicked"), // Array of link IDs
+  clickPositions: jsonb("click_positions"), // Array of {x, y, timestamp} for heatmaps
+  customEvents: jsonb("custom_events"), // Array of custom event names
+  
+  // Conversion
+  didConvert: boolean("did_convert").default(false).notNull(),
+  conversionType: text("conversion_type"), // lead_form, link_click, download, etc.
+}, (table) => ({
+  landingPageIdViewedAtIdx: index("landing_page_views_landing_page_id_viewed_at_idx").on(table.landingPageId, table.viewedAt),
+}));
+
+// TABLE 11: Landing Page Clicks (Click tracking for bio-links)
 export const landingPageClicks = pgTable("landing_page_clicks", {
   id: serial("id").primaryKey(),
   landingPageLinkId: integer("landing_page_link_id").references(() => landingPageLinks.id, { onDelete: "cascade" }).notNull(),
@@ -160,7 +303,7 @@ export const landingPageClicks = pgTable("landing_page_clicks", {
   landingPageLinkIdIdx: index("landing_page_clicks_landing_page_link_id_idx").on(table.landingPageLinkId),
 }));
 
-// TABLE 9: Webhooks (Developer integrations)
+// TABLE 12: Webhooks (Developer integrations)
 export const webhooks = pgTable("webhooks", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
@@ -175,7 +318,7 @@ export const webhooks = pgTable("webhooks", {
   workspaceIdIdx: index("webhooks_workspace_id_idx").on(table.workspaceId),
 }));
 
-// TABLE 10: QR Code Version History (Track destination URL changes)
+// TABLE 13: QR Code Version History (Track destination URL changes)
 export const qrCodeVersions = pgTable("qr_code_versions", {
   id: serial("id").primaryKey(),
   qrCodeId: integer("qr_code_id").references(() => qrCodes.id, { onDelete: "cascade" }).notNull(),

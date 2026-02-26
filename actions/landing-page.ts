@@ -1,18 +1,20 @@
 "use server";
 
 import { db } from "@/db";
-import { landingPages, landingPageLinks } from "@/db/schema";
+import { landingPages, landingPageLinks, landingPageBlocks } from "@/db/schema";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { isReservedSlug } from "@/lib/social-icons";
+import { getTemplate } from "@/lib/templates";
 import { revalidatePath } from "next/cache";
-import crypto from "crypto";
 import { eq } from "drizzle-orm";
+import { LandingPageTemplate, LandingPageCategory } from "@/types/landing-page";
 
 export async function createLandingPage(formData: FormData) {
   try {
     const { workspace } = await getCurrentWorkspace();
 
-    const type = formData.get("type") as string;
+    const template = (formData.get("template") || "biolink") as LandingPageTemplate;
+    const category = (formData.get("category") || "general") as LandingPageCategory;
     const slug = formData.get("slug") as string;
     const theme = formData.get("theme") as string || "default";
 
@@ -32,15 +34,27 @@ export async function createLandingPage(formData: FormData) {
       return { success: false, error: "This slug is already taken. Please choose another." };
     }
 
-    // Type-specific fields
+    // Get template configuration
+    const templateConfig = getTemplate(template);
+
+    // Build page data
     const pageData: any = {
       workspaceId: workspace.id,
       slug,
-      type,
-      theme,
+      template,
+      category,
+      type: template, // Legacy support
+      theme: theme || templateConfig.defaultTheme,
+      colorPrimary: templateConfig.defaultColors.primary,
+      colorSecondary: templateConfig.defaultColors.secondary,
+      fontFamily: templateConfig.defaultFontFamily,
+      enableAnalytics: true,
+      isPublished: true,
+      publishedAt: new Date(),
     };
 
-    if (type === "vcard") {
+    // vCard-specific fields (backward compatibility)
+    if (template === "vcard") {
       pageData.fullName = formData.get("fullName") as string;
       pageData.phone = formData.get("phone") as string;
       pageData.email = formData.get("email") as string;
@@ -48,6 +62,11 @@ export async function createLandingPage(formData: FormData) {
       pageData.address = formData.get("address") as string;
       pageData.profilePhotoUrl = formData.get("profilePhotoUrl") as string;
     }
+
+    // Header customization
+    pageData.headerTitle = formData.get("headerTitle") as string || null;
+    pageData.headerSubtitle = formData.get("headerSubtitle") as string || null;
+    pageData.headerMediaUrl = formData.get("headerMediaUrl") as string || null;
 
     // Custom CSS
     const customCss = formData.get("customCss") as string;
@@ -60,6 +79,20 @@ export async function createLandingPage(formData: FormData) {
       .insert(landingPages)
       .values(pageData)
       .returning({ id: landingPages.id, slug: landingPages.slug });
+
+    // Create default blocks from template
+    if (templateConfig.defaultBlocks && templateConfig.defaultBlocks.length > 0) {
+      await db.insert(landingPageBlocks).values(
+        templateConfig.defaultBlocks.map((block) => ({
+          landingPageId: newPage.id,
+          blockType: block.type,
+          title: block.title || null,
+          content: block.content,
+          displayOrder: block.displayOrder,
+          isVisible: true,
+        }))
+      );
+    }
 
     revalidatePath("/dashboard/pages");
 

@@ -1,9 +1,12 @@
 import { db } from "@/db";
-import { landingPages, landingPageLinks } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { landingPages, landingPageLinks, landingPageBlocks } from "@/db/schema";
+import { eq, asc, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Link2, Mail, Phone, MapPin, Building2, Download } from "lucide-react";
 import TrackedLink from "@/components/TrackedLink";
+import BlockRenderer from "@/components/blocks/BlockRenderer";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
+import { LandingPageBlock } from "@/types/landing-page";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -23,7 +26,17 @@ export default async function PublicLandingPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch links for this page
+  // Fetch blocks for this page
+  const blocks = await db
+    .select()
+    .from(landingPageBlocks)
+    .where(and(
+      eq(landingPageBlocks.landingPageId, page.id),
+      eq(landingPageBlocks.isVisible, true)
+    ))
+    .orderBy(asc(landingPageBlocks.displayOrder));
+
+  // Fetch links for this page (backward compatibility)
   const links = await db
     .select()
     .from(landingPageLinks)
@@ -95,97 +108,116 @@ export default async function PublicLandingPage({ params }: PageProps) {
 
   return (
     <div className={`landing-container min-h-screen ${currentTheme.container} py-12 px-4 sm:px-6 lg:px-8`}>
+      {/* Analytics Tracker */}
+      <AnalyticsTracker slug={slug} />
+      
       <div className="max-w-2xl mx-auto">
-        {/* Profile Section */}
-        <div className={`${currentTheme.card} rounded-3xl shadow-2xl border border-gray-200/50 p-8 mb-6`}>
-          {page.profilePhotoUrl && (
-            <div className="flex justify-center mb-6">
-              <img
-                src={page.profilePhotoUrl}
-                alt={page.fullName || "Profile"}
-                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
-              />
-            </div>
-          )}
-
-          <div className="text-center mb-6">
-            <h1 className={`text-3xl sm:text-4xl font-bold ${currentTheme.text} mb-2`}>
-              {page.type === "vcard" && page.fullName ? page.fullName : `@${page.slug}`}
-            </h1>
-            {page.company && (
-              <p className={`text-lg ${currentTheme.subtext} flex items-center justify-center gap-2`}>
-                <Building2 className="w-5 h-5" />
-                {page.company}
-              </p>
-            )}
+        {/* Render modern block-based layout */}
+        {blocks.length > 0 ? (
+          <div className="space-y-6">
+            {blocks.map((block) => (
+              <div key={block.id} data-block-id={block.id}>
+                <BlockRenderer
+                  block={block as LandingPageBlock}
+                />
+              </div>
+            ))}
           </div>
-
-          {/* vCard Contact Info */}
-          {page.type === "vcard" && (
-            <div className="space-y-3 mb-6">
-              {page.email && (
-                <a
-                  href={`mailto:${page.email}`}
-                  className={`flex items-center justify-center gap-2 ${currentTheme.subtext} hover:opacity-80 transition-opacity`}
-                >
-                  <Mail className="w-5 h-5" />
-                  {page.email}
-                </a>
-              )}
-              {page.phone && (
-                <a
-                  href={`tel:${page.phone}`}
-                  className={`flex items-center justify-center gap-2 ${currentTheme.subtext} hover:opacity-80 transition-opacity`}
-                >
-                  <Phone className="w-5 h-5" />
-                  {page.phone}
-                </a>
-              )}
-              {page.address && (
-                <div className={`flex items-center justify-center gap-2 ${currentTheme.subtext}`}>
-                  <MapPin className="w-5 h-5" />
-                  {page.address}
+        ) : (
+          /* Legacy profile & links layout */
+          <>
+            {/* Profile Section */}
+            <div className={`${currentTheme.card} rounded-3xl shadow-2xl border border-gray-200/50 p-8 mb-6`}>
+              {page.profilePhotoUrl && (
+                <div className="flex justify-center mb-6">
+                  <img
+                    src={page.profilePhotoUrl}
+                    alt={page.fullName || "Profile"}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                  />
                 </div>
               )}
 
-              {/* Download vCard Button */}
-              <div className="pt-4">
-                <a
-                  href={`data:text/vcard;charset=utf-8,${encodeURIComponent([
-                    "BEGIN:VCARD",
-                    "VERSION:3.0",
-                    `FN:${page.fullName || ""}`,
-                    page.phone ? `TEL:${page.phone}` : "",
-                    page.email ? `EMAIL:${page.email}` : "",
-                    page.company ? `ORG:${page.company}` : "",
-                    page.address ? `ADR:;;${page.address}` : "",
-                    page.profilePhotoUrl ? `PHOTO;VALUE=uri:${page.profilePhotoUrl}` : "",
-                    "END:VCARD",
-                  ]
-                    .filter(Boolean)
-                    .join("\n"))}`}
-                  download={`${page.slug}.vcf`}
-                  className={`w-full inline-flex items-center justify-center gap-2 px-6 py-4 ${currentTheme.button} rounded-2xl font-semibold shadow-lg transition-all`}
-                >
-                  <Download className="w-5 h-5" />
-                  Save Contact
-                </a>
+              <div className="text-center mb-6">
+                <h1 className={`text-3xl sm:text-4xl font-bold ${currentTheme.text} mb-2`}>
+                  {page.type === "vcard" && page.fullName ? page.fullName : `@${page.slug}`}
+                </h1>
+                {page.company && (
+                  <p className={`text-lg ${currentTheme.subtext} flex items-center justify-center gap-2`}>
+                    <Building2 className="w-5 h-5" />
+                    {page.company}
+                  </p>
+                )}
               </div>
-            </div>
-          )}
-        </div>
 
-        {/* Links Section */}
-        {links.length > 0 && (
-          <div className="space-y-4">
-            {links.map((link) => (
-              <TrackedLink
-                key={link.id}
-                link={link}
-                buttonClass={currentTheme.button}
-              />
-            ))}
-          </div>
+              {/* vCard Contact Info */}
+              {page.type === "vcard" && (
+                <div className="space-y-3 mb-6">
+                  {page.email && (
+                    <a
+                      href={`mailto:${page.email}`}
+                      className={`flex items-center justify-center gap-2 ${currentTheme.subtext} hover:opacity-80 transition-opacity`}
+                    >
+                      <Mail className="w-5 h-5" />
+                      {page.email}
+                    </a>
+                  )}
+                  {page.phone && (
+                    <a
+                      href={`tel:${page.phone}`}
+                      className={`flex items-center justify-center gap-2 ${currentTheme.subtext} hover:opacity-80 transition-opacity`}
+                    >
+                      <Phone className="w-5 h-5" />
+                      {page.phone}
+                    </a>
+                  )}
+                  {page.address && (
+                    <div className={`flex items-center justify-center gap-2 ${currentTheme.subtext}`}>
+                      <MapPin className="w-5 h-5" />
+                      {page.address}
+                    </div>
+                  )}
+
+                  {/* Download vCard Button */}
+                  <div className="pt-4">
+                    <a
+                      href={`data:text/vcard;charset=utf-8,${encodeURIComponent([
+                        "BEGIN:VCARD",
+                        "VERSION:3.0",
+                        `FN:${page.fullName || ""}`,
+                        page.phone ? `TEL:${page.phone}` : "",
+                        page.email ? `EMAIL:${page.email}` : "",
+                        page.company ? `ORG:${page.company}` : "",
+                        page.address ? `ADR:;;${page.address}` : "",
+                        page.profilePhotoUrl ? `PHOTO;VALUE=uri:${page.profilePhotoUrl}` : "",
+                        "END:VCARD",
+                      ]
+                        .filter(Boolean)
+                        .join("\n"))}`}
+                      download={`${page.slug}.vcf`}
+                      className={`w-full inline-flex items-center justify-center gap-2 px-6 py-4 ${currentTheme.button} rounded-2xl font-semibold shadow-lg transition-all`}
+                    >
+                      <Download className="w-5 h-5" />
+                      Save Contact
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Links Section */}
+            {links.length > 0 && (
+              <div className="space-y-4">
+                {links.map((link) => (
+                  <TrackedLink
+                    key={link.id}
+                    link={link}
+                    buttonClass={currentTheme.button}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Footer */}
