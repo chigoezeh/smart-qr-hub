@@ -2,7 +2,7 @@
 
 import { PageElement } from "@/types/landing-page";
 import { generateElementClasses, generateElementStyles } from "@/lib/page-builder-utils";
-import BlockRenderer from "./blocks/BlockRenderer";
+import BlockRenderer from "../blocks/BlockRenderer";
 import { LandingPageBlock } from "@/types/landing-page";
 
 interface ContainerRendererProps {

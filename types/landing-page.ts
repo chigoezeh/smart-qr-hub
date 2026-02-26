@@ -470,6 +470,9 @@ export interface StyleConfig {
     opacity: number;
   };
   
+  // Text
+  textColor?: string;
+  
   // Border & Shadow
   border?: BorderConfig;
   borderRadius?: BorderRadius | number; // number for all corners
