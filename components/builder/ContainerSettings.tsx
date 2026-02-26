@@ -1,10 +1,13 @@
 "use client";
 
-import { PageElement, Spacing, LayoutConfig, StyleConfig } from "@/types/landing-page";
+import { PageElement, Spacing, LayoutConfig, StyleConfig, BorderConfig, BoxShadow } from "@/types/landing-page";
 import { X, Save, Layout, Palette, Ruler, Eye } from "lucide-react";
 import { useState } from "react";
 import LayoutPicker from "./LayoutPicker";
 import SpacingEditor from "./SpacingEditor";
+import BorderBuilder from "./BorderBuilder";
+import ShadowBuilder from "./ShadowBuilder";
+import ColorPicker from "./ColorPicker";
 
 interface ContainerSettingsProps {
   element: PageElement | null;
@@ -208,38 +211,20 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
 
         {activeTab === "style" && (
           <div className="space-y-6">
-            {/* Background Color */}
+            {/* Background Color with ColorPicker */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Background Color
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={formData.styleConfig.backgroundColor || "#ffffff"}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    styleConfig: {
-                      ...formData.styleConfig,
-                      backgroundColor: e.target.value,
-                    },
-                  })}
-                  className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={formData.styleConfig.backgroundColor || "#ffffff"}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    styleConfig: {
-                      ...formData.styleConfig,
-                      backgroundColor: e.target.value,
-                    },
-                  })}
-                  placeholder="#ffffff"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-                />
-              </div>
+              <ColorPicker
+                value={formData.styleConfig.backgroundColor || "#ffffff"}
+                onChange={(color) => setFormData({
+                  ...formData,
+                  styleConfig: {
+                    ...formData.styleConfig,
+                    backgroundColor: color,
+                  },
+                })}
+                showGradient={true}
+                label="Background Color"
+              />
             </div>
 
             {/* Background Image */}
@@ -262,28 +247,39 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
               />
             </div>
 
-            {/* Border Radius */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Border Radius
-              </label>
-              <input
-                type="range"
-                value={typeof formData.styleConfig.borderRadius === "number" ? formData.styleConfig.borderRadius : 0}
-                onChange={(e) => setFormData({
+            {/* Border Builder */}
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Border</h4>
+              <BorderBuilder
+                value={formData.styleConfig.border || {
+                  style: "none",
+                  width: { top: 0, right: 0, bottom: 0, left: 0 },
+                  color: "#e5e7eb",
+                  radius: { topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 0 },
+                }}
+                onChange={(border) => setFormData({
                   ...formData,
                   styleConfig: {
                     ...formData.styleConfig,
-                    borderRadius: parseInt(e.target.value),
+                    border,
                   },
                 })}
-                min="0"
-                max="50"
-                className="w-full"
               />
-              <div className="text-sm text-gray-600 text-center mt-2">
-                {typeof formData.styleConfig.borderRadius === "number" ? formData.styleConfig.borderRadius : 0}px
-              </div>
+            </div>
+
+            {/* Shadow Builder */}
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Box Shadow</h4>
+              <ShadowBuilder
+                value={formData.styleConfig.boxShadow || []}
+                onChange={(boxShadow) => setFormData({
+                  ...formData,
+                  styleConfig: {
+                    ...formData.styleConfig,
+                    boxShadow,
+                  },
+                })}
+              />
             </div>
           </div>
         )}

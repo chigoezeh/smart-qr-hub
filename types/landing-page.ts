@@ -403,6 +403,7 @@ export interface BorderConfig {
   };
   style: "none" | "solid" | "dashed" | "dotted" | "double";
   color: string;
+  radius?: BorderRadius;
 }
 
 // Border Radius
