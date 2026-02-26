@@ -127,7 +127,11 @@ export default function AddElementPanel({ onAddContainer, onAddBlock }: AddEleme
                           e.dataTransfer.setData("blockType", blockType.type);
                           e.dataTransfer.effectAllowed = "copy";
                         }}
-                        className="flex flex-col items-center gap-2 p-3 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer text-left group"
+                        onDragEnd={(e) => {
+                          // Reset cursor
+                          document.body.style.cursor = "";
+                        }}
+                        className="flex flex-col items-center gap-2 p-3 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all cursor-grab active:cursor-grabbing text-left group"
                       >
                         <Icon className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
                         <span className="text-xs font-medium text-gray-900 text-center">

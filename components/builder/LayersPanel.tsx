@@ -12,6 +12,7 @@ interface LayersPanelProps {
   onToggleVisibility: (id: string) => void;
   onDeleteElement: (id: string) => void;
   onDuplicateElement: (id: string) => void;
+  onMoveElement?: (elementId: string, newParentId: string, index?: number) => void;
 }
 
 export default function LayersPanel({
@@ -21,6 +22,7 @@ export default function LayersPanel({
   onToggleVisibility,
   onDeleteElement,
   onDuplicateElement,
+  onMoveElement,
 }: LayersPanelProps) {
   return (
     <div className="h-full flex flex-col bg-white border-r border-gray-200">

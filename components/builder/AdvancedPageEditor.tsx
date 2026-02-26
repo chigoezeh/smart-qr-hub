@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { PageStructure, PageElement, DeviceBreakpoint, BlockType, LayoutConfig } from "@/types/landing-page";
+import { PageStructure, PageElement, DeviceBreakpoint, BlockType, LayoutConfig, LandingPageBlock } from "@/types/landing-page";
 import { 
   createContainer, 
   createBlockElement, 
@@ -9,6 +9,7 @@ import {
   addChildElement, 
   removeElement, 
   duplicateElement,
+  moveElement,
   createEmptyPageStructure,
 } from "@/lib/page-builder-utils";
 import { savePageStructure, autoSavePageStructure, createPageVersion } from "@/actions/page-structure";
@@ -48,6 +49,7 @@ export default function AdvancedPageEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
   const [editingElement, setEditingElement] = useState<PageElement | null>(null);
+  const [dragOverElementId, setDragOverElementId] = useState<string | null>(null);
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -155,8 +157,10 @@ export default function AdvancedPageEditor({
   };
 
   // Add block
-  const handleAddBlock = (blockType: BlockType) => {
-    if (!selectedElementId) {
+  const handleAddBlock = (blockType: BlockType, targetElementId?: string) => {
+    const targetId = targetElementId || selectedElementId;
+    
+    if (!targetId) {
       toast.error("Select a container first");
       return;
     }
@@ -175,10 +179,16 @@ export default function AdvancedPageEditor({
     const newBlock = createBlockElement(mockBlock);
     const newStructure = {
       ...structure,
-      root: addChildElement(structure.root, selectedElementId, newBlock),
+      root: addChildElement(structure.root, targetId, newBlock),
     };
     updateStructure(newStructure);
     toast.success(`${blockType} block added!`);
+  };
+
+  // Handle drop from AddElementPanel
+  const handleDropBlock = (targetElementId: string, blockType: BlockType) => {
+    handleAddBlock(blockType, targetElementId);
+    setDragOverElementId(null);
   };
 
   // Toggle visibility
@@ -214,6 +224,16 @@ export default function AdvancedPageEditor({
     };
     updateStructure(newStructure);
     toast.success("Element duplicated");
+  };
+
+  // Move element to new parent
+  const handleMoveElement = (elementId: string, newParentId: string, index?: number) => {
+    const newStructure = {
+      ...structure,
+      root: moveElement(structure.root, elementId, newParentId, index),
+    };
+    updateStructure(newStructure);
+    toast.success("Element moved");
   };
 
   // Update element from settings
@@ -327,6 +347,7 @@ export default function AdvancedPageEditor({
               onToggleVisibility={handleToggleVisibility}
               onDeleteElement={handleDeleteElement}
               onDuplicateElement={handleDuplicateElement}
+              onMoveElement={handleMoveElement}
             />
           </div>
         )}
@@ -345,6 +366,7 @@ export default function AdvancedPageEditor({
               element={structure.root}
               isPreview={isPreview}
               isSelected={selectedElementId === structure.root.id}
+              dragOverId={dragOverElementId}
               onClick={(el) => {
                 if (!isPreview) {
                   setSelectedElementId(el.id);
@@ -352,6 +374,15 @@ export default function AdvancedPageEditor({
                     setEditingElement(el);
                   }
                 }
+              }}
+              onDrop={(targetId, blockType) => {
+                handleDropBlock(targetId, blockType);
+              }}
+              onDragOver={(elementId) => {
+                setDragOverElementId(elementId);
+              }}
+              onDragLeave={() => {
+                setDragOverElementId(null);
               }}
             />
           </div>
@@ -370,10 +401,23 @@ export default function AdvancedPageEditor({
         {!isPreview && selectedElement && selectedElement.type === "block" && (
           <div className="w-96 bg-white border-l border-gray-200">
             <BlockSettingsPanel
-              block={null} // TODO: Convert to LandingPageBlock format
+              block={convertElementToBlock(selectedElement)}
               onClose={() => setSelectedElementId(null)}
-              onUpdate={(block) => {
-                // TODO: Update block in structure
+              onUpdate={(updatedBlock) => {
+                // Update the block element in the structure
+                const updatedStructure = updateElement(structure.root, selectedElementId!, {
+                  blockTitle: updatedBlock.title,
+                  blockContent: updatedBlock.content,
+                  styleConfig: {
+                    ...selectedElement.styleConfig,
+                    backgroundColor: updatedBlock.backgroundColor,
+                    textColor: updatedBlock.textColor,
+                  },
+                });
+                
+                const newStructure = { ...structure, root: updatedStructure };
+                updateStructure(newStructure);
+                toast.success("Block updated");
               }}
             />
           </div>
@@ -403,4 +447,22 @@ function getDefaultContentForBlockType(blockType: BlockType): any {
     custom: { html: "" },
   };
   return defaults[blockType] || {};
+}
+
+// Helper function to convert PageElement to LandingPageBlock format for BlockSettingsPanel
+function convertElementToBlock(element: PageElement): LandingPageBlock {
+  return {
+    id: 0, // Temporary ID, not used
+    landingPageId: 0, // Temporary ID, not used
+    blockType: element.blockType || "text",
+    title: element.blockTitle || null,
+    content: element.blockContent || {},
+    displayOrder: element.displayOrder || 0,
+    isVisible: element.isVisible,
+    backgroundColor: element.styleConfig?.backgroundColor || null,
+    textColor: element.styleConfig?.textColor || null,
+    customStyles: element.styleConfig || null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as LandingPageBlock;
 }

@@ -1,23 +1,34 @@
 "use client";
 
-import { PageElement } from "@/types/landing-page";
+import { PageElement, BlockType } from "@/types/landing-page";
 import { generateElementClasses, generateElementStyles } from "@/lib/page-builder-utils";
 import BlockRenderer from "../blocks/BlockRenderer";
 import { LandingPageBlock } from "@/types/landing-page";
+import { useState } from "react";
 
 interface ContainerRendererProps {
   element: PageElement;
   isPreview?: boolean;
   isSelected?: boolean;
+  dragOverId?: string | null;
   onClick?: (element: PageElement) => void;
+  onDrop?: (targetElementId: string, blockType: BlockType) => void;
+  onDragOver?: (elementId: string) => void;
+  onDragLeave?: () => void;
 }
 
 export default function ContainerRenderer({
   element,
   isPreview = false,
   isSelected = false,
+  dragOverId = null,
   onClick,
+  onDrop,
+  onDragOver,
+  onDragLeave,
 }: ContainerRendererProps) {
+  const [isDraggedOver, setIsDraggedOver] = useState(false);
+  
   // Don't render invisible elements in preview mode
   if (!element.isVisible && isPreview) {
     return null;
@@ -25,11 +36,49 @@ export default function ContainerRenderer({
 
   const classes = generateElementClasses(element);
   const styles = generateElementStyles(element);
+  const isDropTarget = dragOverId === element.id;
 
   const handleClick = (e: React.MouseEvent) => {
     if (onClick && !isPreview) {
       e.stopPropagation();
       onClick(element);
+    }
+  };
+
+  // Drag and drop handlers (only for containers, not blocks)
+  const handleDragOver = (e: React.DragEvent) => {
+    if (isPreview || element.type === "block") return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggedOver(true);
+    
+    if (onDragOver) {
+      onDragOver(element.id);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (isPreview || element.type === "block") return;
+    
+    e.stopPropagation();
+    setIsDraggedOver(false);
+    
+    if (onDragLeave) {
+      onDragLeave();
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    if (isPreview || element.type === "block") return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggedOver(false);
+    
+    const blockType = e.dataTransfer.getData("blockType") as BlockType;
+    if (blockType && onDrop) {
+      onDrop(element.id, blockType);
     }
   };
 
@@ -65,14 +114,30 @@ export default function ContainerRenderer({
   return (
     <div
       id={element.customId}
-      className={`relative ${classes} ${isSelected && !isPreview ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+      className={`relative ${classes} ${
+        isSelected && !isPreview ? "ring-2 ring-blue-500 ring-offset-2" : ""
+      } ${
+        (isDraggedOver || isDropTarget) && !isPreview ? "ring-2 ring-green-500 ring-offset-2 bg-green-50" : ""
+      }`}
       style={styles}
       onClick={handleClick}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       {/* Container label (only in edit mode) */}
       {!isPreview && element.containerName && (
         <div className="absolute -top-6 left-0 text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded z-10">
           {element.containerName}
+        </div>
+      )}
+
+      {/* Drop indicator */}
+      {(isDraggedOver || isDropTarget) && !isPreview && (
+        <div className="absolute inset-0 border-2 border-dashed border-green-500 bg-green-50 bg-opacity-20 pointer-events-none z-20 flex items-center justify-center">
+          <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+            Drop block here
+          </span>
         </div>
       )}
 
@@ -83,7 +148,11 @@ export default function ContainerRenderer({
           element={child}
           isPreview={isPreview}
           isSelected={isSelected}
+          dragOverId={dragOverId}
           onClick={onClick}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
         />
       ))}
 
