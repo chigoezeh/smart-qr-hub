@@ -550,34 +550,26 @@ export interface AnimationState {
 // Scroll Animation Configuration
 export interface ScrollAnimationConfig {
   enabled: boolean;
-  trigger: "enter" | "exit" | "enter-exit" | "scroll-progress";
-  animation: {
-    type: "fade" | "slide" | "zoom" | "rotate" | "custom";
-    from: AnimationState;
-    to: AnimationState;
-    duration: number; // milliseconds
-    delay: number; // milliseconds
-    easing: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out" | string;
-    stagger?: number; // For children
-  };
-  triggerPoint?: number; // 0-100% of viewport
+  type: "fade" | "slide" | "zoom" | "rotate";
+  slideDirection?: "up" | "down" | "left" | "right";
+  duration: number; // milliseconds
+  delay?: number; // milliseconds
+  easing: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out";
+  triggerPoint: number; // 0-100% of viewport
+  triggerEvent?: "enter" | "exit" | "enter-exit";
 }
 
 // Hover Effect Configuration
 export interface HoverEffectConfig {
   enabled: boolean;
-  transition: {
-    duration: number;
-    easing: string;
-  };
-  hover: {
-    transform?: string;
-    backgroundColor?: string;
-    borderColor?: string;
-    boxShadow?: string;
-    opacity?: number;
-    scale?: number;
-  };
+  duration: number; // milliseconds
+  easing: string;
+  scale?: number;
+  transform?: string;
+  boxShadow?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  opacity?: number; // 0-100
 }
 
 // Parallax Configuration

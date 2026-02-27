@@ -114,6 +114,7 @@ export default function ContainerRenderer({
   return (
     <div
       id={element.customId}
+      data-element-id={element.id}
       className={`relative ${classes} ${
         isSelected && !isPreview ? "ring-2 ring-blue-500 ring-offset-2" : ""
       } ${

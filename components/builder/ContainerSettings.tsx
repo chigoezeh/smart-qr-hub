@@ -1,6 +1,6 @@
 "use client";
 
-import { PageElement, Spacing, LayoutConfig, StyleConfig, BorderConfig, BoxShadow, ParallaxConfig } from "@/types/landing-page";
+import { PageElement, Spacing, LayoutConfig, StyleConfig, BorderConfig, BoxShadow, ParallaxConfig, AnimationConfig, ScrollAnimationConfig, HoverEffectConfig } from "@/types/landing-page";
 import { X, Save, Layout, Palette, Ruler, Eye, Sparkles } from "lucide-react";
 import { useState } from "react";
 import LayoutPicker from "./LayoutPicker";
@@ -11,6 +11,8 @@ import ColorPicker from "./ColorPicker";
 import StickySettings from "./StickySettings";
 import ParallaxSettings from "./ParallaxSettings";
 import GridTemplateTool from "./GridTemplateTool";
+import ScrollAnimationSettings from "./ScrollAnimationSettings";
+import HoverEffectSettings from "./HoverEffectSettings";
 
 interface ContainerSettingsProps {
   element: PageElement | null;
@@ -30,6 +32,7 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
     containerName: element.containerName || "",
     layoutConfig: element.layoutConfig || { type: "stack" as const },
     styleConfig: element.styleConfig || {},
+    animationConfig: element.animationConfig || {},
   });
 
   const handleSave = async () => {
@@ -40,6 +43,7 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
         containerName: formData.containerName,
         layoutConfig: formData.layoutConfig,
         styleConfig: formData.styleConfig,
+        animationConfig: formData.animationConfig,
       };
       
       onUpdate(updatedElement);
@@ -351,24 +355,44 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
               />
             </div>
 
-            {/* Future: Scroll Animations */}
-            <div className="pt-6 border-t border-gray-200 opacity-50">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                Scroll Animations (Coming Soon)
-              </h4>
-              <p className="text-xs text-gray-600">
-                Fade in, slide in, zoom, and other entrance animations triggered by scroll
-              </p>
+            {/* Scroll Animations */}
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Scroll Animations</h4>
+              <ScrollAnimationSettings
+                value={formData.animationConfig.scroll || {
+                  enabled: false,
+                  type: "fade",
+                  duration: 800,
+                  triggerPoint: 20,
+                  easing: "ease-out",
+                }}
+                onChange={(scroll) => setFormData({
+                  ...formData,
+                  animationConfig: {
+                    ...formData.animationConfig,
+                    scroll,
+                  },
+                })}
+              />
             </div>
 
-            {/* Future: Hover Effects */}
-            <div className="pt-6 border-t border-gray-200 opacity-50">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                Hover Effects (Coming Soon)
-              </h4>
-              <p className="text-xs text-gray-600">
-                Lift, grow, glow, and other hover state transformations
-              </p>
+            {/* Hover Effects */}
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Hover Effects</h4>
+              <HoverEffectSettings
+                value={formData.animationConfig.hover || {
+                  enabled: false,
+                  duration: 300,
+                  easing: "ease",
+                }}
+                onChange={(hover) => setFormData({
+                  ...formData,
+                  animationConfig: {
+                    ...formData.animationConfig,
+                    hover,
+                  },
+                })}
+              />
             </div>
           </div>
         )}

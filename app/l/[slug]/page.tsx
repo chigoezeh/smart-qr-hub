@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 import { Link2, Mail, Phone, MapPin, Building2, Download } from "lucide-react";
 import TrackedLink from "@/components/TrackedLink";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
+import ContainerRenderer from "@/components/builder/ContainerRenderer";
+import AnimationInitializer from "@/components/builder/AnimationInitializer";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
-import { LandingPageBlock } from "@/types/landing-page";
+import { LandingPageBlock, PageElement } from "@/types/landing-page";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -112,20 +114,30 @@ export default async function PublicLandingPage({ params }: PageProps) {
       <AnalyticsTracker slug={slug} />
       
       <div className="max-w-2xl mx-auto">
-        {/* Render modern block-based layout */}
-        {blocks.length > 0 ? (
-          <div className="space-y-6">
-            {blocks.map((block) => (
-              <div key={block.id} data-block-id={block.id}>
-                <BlockRenderer
-                  block={block as LandingPageBlock}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Legacy profile & links layout */
+        {/* Render advanced page builder layout (Phase 5+) */}
+        {page.pageStructure && page.builderVersion === "v2" ? (
           <>
+            <ContainerRenderer
+              element={page.pageStructure as PageElement}
+              isPreview={true}
+            />
+            <AnimationInitializer rootElement={page.pageStructure as PageElement} />
+          </>
+        ) : (
+          /* Render modern block-based layout */
+          blocks.length > 0 ? (
+            <div className="space-y-6">
+              {blocks.map((block) => (
+                <div key={block.id} data-block-id={block.id}>
+                  <BlockRenderer
+                    block={block as LandingPageBlock}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Legacy profile & links layout */
+            <>
             {/* Profile Section */}
             <div className={`${currentTheme.card} rounded-3xl shadow-2xl border border-gray-200/50 p-8 mb-6`}>
               {page.profilePhotoUrl && (
@@ -218,7 +230,7 @@ export default async function PublicLandingPage({ params }: PageProps) {
               </div>
             )}
           </>
-        )}
+        ))}
 
         {/* Footer */}
         <div className="text-center mt-12">
