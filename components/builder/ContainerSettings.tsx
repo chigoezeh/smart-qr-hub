@@ -1,13 +1,16 @@
 "use client";
 
-import { PageElement, Spacing, LayoutConfig, StyleConfig, BorderConfig, BoxShadow } from "@/types/landing-page";
-import { X, Save, Layout, Palette, Ruler, Eye } from "lucide-react";
+import { PageElement, Spacing, LayoutConfig, StyleConfig, BorderConfig, BoxShadow, ParallaxConfig } from "@/types/landing-page";
+import { X, Save, Layout, Palette, Ruler, Eye, Sparkles } from "lucide-react";
 import { useState } from "react";
 import LayoutPicker from "./LayoutPicker";
 import SpacingEditor from "./SpacingEditor";
 import BorderBuilder from "./BorderBuilder";
 import ShadowBuilder from "./ShadowBuilder";
 import ColorPicker from "./ColorPicker";
+import StickySettings from "./StickySettings";
+import ParallaxSettings from "./ParallaxSettings";
+import GridTemplateTool from "./GridTemplateTool";
 
 interface ContainerSettingsProps {
   element: PageElement | null;
@@ -15,7 +18,7 @@ interface ContainerSettingsProps {
   onUpdate: (updatedElement: PageElement) => void;
 }
 
-type TabType = "layout" | "spacing" | "style" | "visibility";
+type TabType = "layout" | "spacing" | "style" | "effects" | "visibility";
 
 export default function ContainerSettings({ element, onClose, onUpdate }: ContainerSettingsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("layout");
@@ -79,6 +82,7 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
     { id: "layout" as TabType, label: "Layout", icon: Layout },
     { id: "spacing" as TabType, label: "Spacing", icon: Ruler },
     { id: "style" as TabType, label: "Style", icon: Palette },
+    { id: "effects" as TabType, label: "Effects", icon: Sparkles },
     { id: "visibility" as TabType, label: "Visibility", icon: Eye },
   ];
 
@@ -188,6 +192,26 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
                 </div>
               </div>
             )}
+
+            {/* Advanced Grid Template Tool */}
+            {formData.layoutConfig.type === "grid" && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">Advanced Grid Controls</h4>
+                <GridTemplateTool
+                  gridTemplateColumns={formData.layoutConfig.gridTemplateColumns}
+                  gridTemplateRows={formData.layoutConfig.gridTemplateRows}
+                  gridAutoFlow={formData.layoutConfig.gridAutoFlow}
+                  gridGap={formData.layoutConfig.gridGap || formData.layoutConfig.gap}
+                  onChange={(gridConfig) => updateLayoutConfig({
+                    ...formData.layoutConfig,
+                    gridTemplateColumns: gridConfig.gridTemplateColumns,
+                    gridTemplateRows: gridConfig.gridTemplateRows,
+                    gridAutoFlow: gridConfig.gridAutoFlow,
+                    gridGap: gridConfig.gridGap,
+                  })}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -280,6 +304,71 @@ export default function ContainerSettings({ element, onClose, onUpdate }: Contai
                   },
                 })}
               />
+            </div>
+
+            {/* Sticky Positioning */}
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Sticky Position</h4>
+              <StickySettings
+                enabled={formData.styleConfig.position === "sticky"}
+                top={formData.styleConfig.top as number}
+                right={formData.styleConfig.right as number}
+                bottom={formData.styleConfig.bottom as number}
+                left={formData.styleConfig.left as number}
+                zIndex={formData.styleConfig.zIndex}
+                onChange={(settings) => setFormData({
+                  ...formData,
+                  styleConfig: {
+                    ...formData.styleConfig,
+                    ...settings,
+                  },
+                })}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "effects" && (
+          <div className="space-y-6">
+            {/* Parallax Effects */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Parallax Scrolling</h4>
+              <ParallaxSettings
+                value={formData.styleConfig.parallax || {
+                  enabled: false,
+                  speed: 0.5,
+                  axis: "y",
+                  scale: false,
+                  opacity: false,
+                }}
+                onChange={(parallax) => setFormData({
+                  ...formData,
+                  styleConfig: {
+                    ...formData.styleConfig,
+                    parallax,
+                  },
+                })}
+              />
+            </div>
+
+            {/* Future: Scroll Animations */}
+            <div className="pt-6 border-t border-gray-200 opacity-50">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                Scroll Animations (Coming Soon)
+              </h4>
+              <p className="text-xs text-gray-600">
+                Fade in, slide in, zoom, and other entrance animations triggered by scroll
+              </p>
+            </div>
+
+            {/* Future: Hover Effects */}
+            <div className="pt-6 border-t border-gray-200 opacity-50">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                Hover Effects (Coming Soon)
+              </h4>
+              <p className="text-xs text-gray-600">
+                Lift, grow, glow, and other hover state transformations
+              </p>
             </div>
           </div>
         )}

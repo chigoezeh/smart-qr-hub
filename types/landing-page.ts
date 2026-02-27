@@ -491,6 +491,16 @@ export interface StyleConfig {
   right?: number | string;
   bottom?: number | string;
   left?: number | string;
+  
+  // Flexbox Item Properties (when element is inside a flex container)
+  flexGrow?: number;
+  flexShrink?: number;
+  flexBasis?: string;
+  order?: number;
+  alignSelf?: "auto" | "flex-start" | "flex-end" | "center" | "baseline" | "stretch";
+  
+  // Effects
+  parallax?: ParallaxConfig;
 }
 
 // Responsive Configuration (per breakpoint)
