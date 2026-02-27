@@ -6,8 +6,10 @@ import { eq, and, asc } from "drizzle-orm";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
 import PageEditor from "@/components/PageEditor";
+import AdvancedPageEditor from "@/components/builder/AdvancedPageEditor";
 import QRQuickCreate from "@/components/QRQuickCreate";
 import { LandingPageBlock } from "@/types/landing-page";
+import { migrateBlocksToHierarchy } from "@/lib/page-builder-utils";
 
 export default async function EditLandingPage({ params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
@@ -31,7 +33,34 @@ export default async function EditLandingPage({ params }: { params: Promise<{ id
 
   if (!page) notFound();
 
-  // Fetch blocks for this page
+  // Check if page uses new builder (v2) or needs migration
+  const useAdvancedBuilder = page.builderVersion === "v2" || process.env.NEXT_PUBLIC_ENABLE_ADVANCED_BUILDER === "true";
+
+  if (useAdvancedBuilder) {
+    // Use advanced builder
+    let pageStructure = page.pageStructure;
+
+    // Migrate if needed
+    if (!pageStructure || page.builderVersion !== "v2") {
+      const blocks = await db
+        .select()
+        .from(landingPageBlocks)
+        .where(eq(landingPageBlocks.landingPageId, pageId))
+        .orderBy(asc(landingPageBlocks.displayOrder));
+
+      pageStructure = migrateBlocksToHierarchy(blocks as LandingPageBlock[]);
+    }
+
+    return (
+      <AdvancedPageEditor
+        pageId={pageId}
+        pageSlug={page.slug}
+        initialStructure={pageStructure as any}
+      />
+    );
+  }
+
+  // Use legacy editor
   const blocks = await db
     .select()
     .from(landingPageBlocks)

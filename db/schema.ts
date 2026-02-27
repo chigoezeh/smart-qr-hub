@@ -173,6 +173,11 @@ export const landingPages = pgTable("landing_pages", {
   // Lead Notification Configuration
   notificationConfig: jsonb("notification_config"), // {notifications: [...], webhookUrl, apiKey, emailService}
   
+  // Advanced Page Builder - Hierarchical Structure
+  pageStructure: jsonb("page_structure"), // Full tree structure for advanced builder (PageStructure type)
+  designTokens: jsonb("design_tokens"), // Global design system tokens (DesignTokens type)
+  builderVersion: text("builder_version").default("v1"), // v1 = flat blocks, v2 = hierarchical
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   publishedAt: timestamp("published_at"),
@@ -327,4 +332,66 @@ export const qrCodeVersions = pgTable("qr_code_versions", {
   changedAt: timestamp("changed_at").defaultNow().notNull(),
 }, (table) => ({
   qrCodeIdIdx: index("qr_code_versions_qr_code_id_idx").on(table.qrCodeId),
+}));
+
+// ============================================================================
+// ADVANCED PAGE BUILDER TABLES
+// ============================================================================
+
+// TABLE 14: Page Versions (Version history & undo/redo)
+export const pageVersions = pgTable("page_versions", {
+  id: serial("id").primaryKey(),
+  landingPageId: integer("landing_page_id").references(() => landingPages.id, { onDelete: "cascade" }).notNull(),
+  versionNumber: integer("version_number").notNull(),
+  pageStructure: jsonb("page_structure").notNull(), // Full PageStructure snapshot
+  settings: jsonb("settings"), // Page settings snapshot (theme, colors, etc.)
+  changedBy: text("changed_by").notNull(), // Clerk user ID
+  changeDescription: text("change_description"), // Optional label like "Before homepage redesign"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  landingPageIdIdx: index("page_versions_landing_page_id_idx").on(table.landingPageId),
+  landingPageIdVersionIdx: index("page_versions_landing_page_id_version_idx").on(table.landingPageId, table.versionNumber),
+}));
+
+// TABLE 15: Saved Components (Reusable blocks/sections)
+export const savedComponents = pgTable("saved_components", {
+  id: serial("id").primaryKey(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  thumbnail: text("thumbnail"), // Preview image URL
+  componentData: jsonb("component_data").notNull(), // PageElement structure
+  category: text("category"), // "hero", "feature", "cta", "testimonial", "pricing", etc.
+  tags: jsonb("tags").default([]), // Array of searchable tags
+  isPublic: boolean("is_public").default(false).notNull(), // Share across workspace
+  createdBy: text("created_by").notNull(), // Clerk user ID
+  usageCount: integer("usage_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  workspaceIdIdx: index("saved_components_workspace_id_idx").on(table.workspaceId),
+  categoryIdx: index("saved_components_category_idx").on(table.category),
+}));
+
+// TABLE 16: Media Library (Asset management)
+export const mediaLibrary = pgTable("media_library", {
+  id: serial("id").primaryKey(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }).notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(), // bytes
+  mimeType: text("mime_type").notNull(), // image/jpeg, video/mp4, etc.
+  url: text("url").notNull(), // Full CDN URL
+  thumbnailUrl: text("thumbnail_url"), // For videos and large images
+  width: integer("width"), // For images/videos
+  height: integer("height"), // For images/videos
+  altText: text("alt_text"),
+  tags: jsonb("tags").default([]), // Searchable tags
+  folder: text("folder"), // Optional folder organization
+  uploadedBy: text("uploaded_by").notNull(), // Clerk user ID
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  workspaceIdIdx: index("media_library_workspace_id_idx").on(table.workspaceId),
+  mimeTypeIdx: index("media_library_mime_type_idx").on(table.mimeType),
+  folderIdx: index("media_library_folder_idx").on(table.folder),
 }));

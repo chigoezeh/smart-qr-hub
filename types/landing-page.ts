@@ -364,3 +364,402 @@ export interface LandingPageView {
   didConvert: boolean;
   conversionType?: string;
 }
+
+// ============================================================================
+// ADVANCED PAGE BUILDER TYPES
+// ============================================================================
+
+// Device Breakpoints
+export type DeviceBreakpoint = "mobile" | "tablet" | "desktop";
+
+// Element Types (Container Hierarchy)
+export type ElementType = "section" | "container" | "column" | "block";
+
+// Layout Types
+export type LayoutType = "stack" | "flex" | "grid";
+
+// Spacing (for margin/padding)
+export interface Spacing {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+// Responsive Spacing (per breakpoint)
+export interface ResponsiveSpacing {
+  mobile: Spacing;
+  tablet: Spacing;
+  desktop: Spacing;
+}
+
+// Border Configuration
+export interface BorderConfig {
+  width: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  style: "none" | "solid" | "dashed" | "dotted" | "double";
+  color: string;
+  radius?: BorderRadius;
+}
+
+// Border Radius
+export interface BorderRadius {
+  topLeft: number;
+  topRight: number;
+  bottomRight: number;
+  bottomLeft: number;
+}
+
+// Box Shadow
+export interface BoxShadow {
+  x: number;
+  y: number;
+  blur: number;
+  spread: number;
+  color: string;
+  inset: boolean;
+}
+
+// Layout Configuration
+export interface LayoutConfig {
+  type: LayoutType;
+  
+  // Flex properties
+  flexDirection?: "row" | "column" | "row-reverse" | "column-reverse";
+  justifyContent?: "start" | "center" | "end" | "space-between" | "space-around" | "space-evenly";
+  alignItems?: "start" | "center" | "end" | "stretch" | "baseline";
+  flexWrap?: "nowrap" | "wrap" | "wrap-reverse";
+  gap?: number;
+  
+  // Grid properties
+  gridTemplateColumns?: string; // e.g., "1fr 1fr 1fr" or "repeat(3, 1fr)"
+  gridTemplateRows?: string;
+  gridAutoFlow?: "row" | "column" | "dense" | "row dense" | "column dense";
+  gridGap?: number;
+  
+  // Container width
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full" | number;
+  minHeight?: string | number;
+  
+  // Responsive columns (for quick layouts)
+  columns?: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
+  };
+}
+
+// Style Configuration
+export interface StyleConfig {
+  // Spacing
+  padding?: Spacing | ResponsiveSpacing;
+  margin?: Spacing | ResponsiveSpacing;
+  
+  // Background
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundSize?: "auto" | "cover" | "contain";
+  backgroundPosition?: string;
+  backgroundRepeat?: "repeat" | "no-repeat" | "repeat-x" | "repeat-y";
+  backgroundAttachment?: "scroll" | "fixed" | "local";
+  backgroundOverlay?: {
+    color: string;
+    opacity: number;
+  };
+  
+  // Text
+  textColor?: string;
+  
+  // Border & Shadow
+  border?: BorderConfig;
+  borderRadius?: BorderRadius | number; // number for all corners
+  boxShadow?: BoxShadow[];
+  
+  // Display
+  display?: "block" | "flex" | "grid" | "inline-block" | "none";
+  opacity?: number;
+  zIndex?: number;
+  overflow?: "visible" | "hidden" | "scroll" | "auto";
+  
+  // Position
+  position?: "static" | "relative" | "absolute" | "fixed" | "sticky";
+  top?: number | string;
+  right?: number | string;
+  bottom?: number | string;
+  left?: number | string;
+  
+  // Flexbox Item Properties (when element is inside a flex container)
+  flexGrow?: number;
+  flexShrink?: number;
+  flexBasis?: string;
+  order?: number;
+  alignSelf?: "auto" | "flex-start" | "flex-end" | "center" | "baseline" | "stretch";
+  
+  // Effects
+  parallax?: ParallaxConfig;
+}
+
+// Responsive Configuration (per breakpoint)
+export interface ResponsiveConfig {
+  mobile?: {
+    display?: "block" | "flex" | "grid" | "none";
+    width?: string;
+    fontSize?: string;
+    padding?: Spacing;
+    margin?: Spacing;
+    layoutConfig?: Partial<LayoutConfig>;
+  };
+  tablet?: {
+    display?: "block" | "flex" | "grid" | "none";
+    width?: string;
+    fontSize?: string;
+    padding?: Spacing;
+    margin?: Spacing;
+    layoutConfig?: Partial<LayoutConfig>;
+  };
+  desktop?: {
+    display?: "block" | "flex" | "grid" | "none";
+    width?: string;
+    fontSize?: string;
+    padding?: Spacing;
+    margin?: Spacing;
+    layoutConfig?: Partial<LayoutConfig>;
+  };
+}
+
+// Animation State
+export interface AnimationState {
+  opacity?: number;
+  translateX?: number;
+  translateY?: number;
+  translateZ?: number;
+  scale?: number;
+  scaleX?: number;
+  scaleY?: number;
+  rotate?: number;
+  rotateX?: number;
+  rotateY?: number;
+  skewX?: number;
+  skewY?: number;
+}
+
+// Scroll Animation Configuration
+export interface ScrollAnimationConfig {
+  enabled: boolean;
+  trigger: "enter" | "exit" | "enter-exit" | "scroll-progress";
+  animation: {
+    type: "fade" | "slide" | "zoom" | "rotate" | "custom";
+    from: AnimationState;
+    to: AnimationState;
+    duration: number; // milliseconds
+    delay: number; // milliseconds
+    easing: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out" | string;
+    stagger?: number; // For children
+  };
+  triggerPoint?: number; // 0-100% of viewport
+}
+
+// Hover Effect Configuration
+export interface HoverEffectConfig {
+  enabled: boolean;
+  transition: {
+    duration: number;
+    easing: string;
+  };
+  hover: {
+    transform?: string;
+    backgroundColor?: string;
+    borderColor?: string;
+    boxShadow?: string;
+    opacity?: number;
+    scale?: number;
+  };
+}
+
+// Parallax Configuration
+export interface ParallaxConfig {
+  enabled: boolean;
+  speed: number; // -1 to 1
+  axis: "y" | "x" | "both";
+  scale?: boolean;
+  opacity?: boolean;
+}
+
+// Animation Configuration (combines all animation types)
+export interface AnimationConfig {
+  scroll?: ScrollAnimationConfig;
+  hover?: HoverEffectConfig;
+  parallax?: ParallaxConfig;
+}
+
+// Page Element (Container or Block)
+export interface PageElement {
+  id: string; // UUID for client-side management
+  type: ElementType;
+  
+  // Layout & Style
+  layoutConfig?: LayoutConfig;
+  styleConfig?: StyleConfig;
+  responsiveConfig?: ResponsiveConfig;
+  animationConfig?: AnimationConfig;
+  
+  // Hierarchy
+  parentId?: string;
+  children: PageElement[];
+  displayOrder: number;
+  
+  // Block-specific data (only if type === "block")
+  blockType?: BlockType;
+  blockTitle?: string;
+  blockContent?: BlockContent;
+  
+  // Container-specific
+  containerName?: string; // User-friendly name for sections/containers
+  
+  // Visibility
+  isVisible: boolean;
+  
+  // Custom classes/ID
+  customClassName?: string;
+  customId?: string;
+  
+  // Metadata
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Page Structure (root container)
+export interface PageStructure {
+  version: string; // Schema version for migrations
+  root: PageElement;
+  metadata?: {
+    lastEditedBy?: number;
+    lastEditedAt?: Date;
+  };
+}
+
+// Quick Layout Presets
+export type LayoutPreset =
+  | "single-column"
+  | "two-column-equal"
+  | "two-column-60-40"
+  | "two-column-40-60"
+  | "two-column-70-30"
+  | "two-column-30-70"
+  | "three-column-equal"
+  | "three-column-50-25-25"
+  | "three-column-25-50-25"
+  | "four-column-equal"
+  | "custom-grid";
+
+// Section Template (pre-built sections)
+export interface SectionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: "hero" | "features" | "cta" | "content" | "testimonials" | "pricing" | "footer" | "custom";
+  thumbnail?: string;
+  structure: PageElement;
+  tags: string[];
+  isPremium?: boolean;
+}
+
+// Saved Component (reusable user components)
+export interface SavedComponent {
+  id: number;
+  workspaceId: number;
+  name: string;
+  description?: string;
+  thumbnail?: string;
+  componentData: PageElement;
+  category?: string;
+  isPublic: boolean;
+  createdBy: number;
+  usageCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Design System / Tokens
+export interface DesignTokens {
+  colors: {
+    primary: Record<number, string>; // 50, 100, 200, ..., 900
+    secondary: Record<number, string>;
+    accent: Record<number, string>;
+    neutral: Record<number, string>;
+    custom: Record<string, string>;
+  };
+  typography: {
+    fontFamily: {
+      heading: string;
+      body: string;
+      mono: string;
+    };
+    scale: {
+      xs: string;
+      sm: string;
+      base: string;
+      lg: string;
+      xl: string;
+      "2xl": string;
+      "3xl": string;
+      "4xl": string;
+      "5xl": string;
+    };
+    weights: Record<string, number>;
+    lineHeights: Record<string, number>;
+  };
+  spacing: Record<number, number>; // 0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96, 128
+  borderRadius: {
+    none: number;
+    sm: number;
+    md: number;
+    lg: number;
+    xl: number;
+    "2xl": number;
+    full: number;
+  };
+  shadows: {
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+    "2xl": string;
+    inner: string;
+  };
+}
+
+// Page Version (for version history)
+export interface PageVersion {
+  id: number;
+  landingPageId: number;
+  versionNumber: number;
+  pageStructure: PageStructure;
+  settings: Partial<LandingPage>;
+  changedBy: number;
+  changeDescription?: string;
+  createdAt: Date;
+}
+
+// Media Library Asset
+export interface MediaAsset {
+  id: number;
+  workspaceId: number;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  url: string;
+  thumbnailUrl?: string;
+  width?: number;
+  height?: number;
+  altText?: string;
+  tags: string[];
+  folder?: string;
+  uploadedBy: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
